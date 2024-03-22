@@ -75,6 +75,7 @@ select {
   justify-content: space-evenly;
   color: black;
   background-color: white;
+  height: 3rem;
 }
 select {
   background-color: rgb(0, 117, 255);
