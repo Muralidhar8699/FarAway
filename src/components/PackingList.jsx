@@ -53,11 +53,6 @@ export default function PackingList({
                   </defs>
                 </svg>
               </div>
-              {/* <input
-                type="checkbox"
-                value={e.packed}
-                onChange={() => handleToggle(e.id)}
-              /> */}
               <p>{e.quant}</p>
               <p style={e.packed ? { textDecoration: "line-through" } : {}}>
                 {e.desc}
@@ -73,7 +68,7 @@ export default function PackingList({
           <option value="description">Sort by description</option>
           <option value="packed">Sort by packed status</option>
         </select>
-        <button onClick={handleClear} className="form_add">
+        <button onClick={handleClear} className="button-29">
           Clear List
         </button>
       </div>

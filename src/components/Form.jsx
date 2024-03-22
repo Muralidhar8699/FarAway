@@ -29,13 +29,16 @@ export default function Form({ setItems }) {
           </option>
         ))}
       </select>
-      <input className="form_input"
+      <input
+        className="form_input"
         type="text"
         placeholder="Item..."
         value={desc}
         onChange={(e) => setDesc(e.target.value)}
       />
-      <button className="form_add">{"add"}</button>
+      <button class="button-29" role="button">
+        add
+      </button>
     </form>
   );
 }
