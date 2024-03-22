@@ -15,11 +15,12 @@
   font-size: 3rem;
   text-align: center;
   margin-top: 2rem;
+  color: red;
 }
 .list_main {
   background-color: rgb(238, 235, 235);
   color: white;
-  height: 36rem;
+  height: 38rem;
   padding: 2rem;
   display: flex;
   flex-direction: row;
@@ -46,7 +47,6 @@
   font-size: 1.3rem;
   width: 70vw;
   height: 100%;
-  border: 1px solid;
 }
 .list_sort_div {
   display: flex;
