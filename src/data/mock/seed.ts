@@ -208,6 +208,8 @@ export function createSeedData(): MockDb {
     match_number: m.n,
     team_a_id: t(m.a),
     team_b_id: t(m.b),
+    team_a_from: null,
+    team_b_from: null,
     venue: hpl.venues[(m.n - 1) % hpl.venues.length],
     scheduled_at: m.at,
     status: m.status as Match["status"],

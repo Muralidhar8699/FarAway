@@ -11,6 +11,8 @@ import type {
 
 export const STAGE_LABELS: Record<MatchStage, string> = {
   league: "League",
+  round_of_32: "Round of 32",
+  round_of_16: "Round of 16",
   qualifier_1: "Qualifier 1",
   eliminator: "Eliminator",
   qualifier_2: "Qualifier 2",

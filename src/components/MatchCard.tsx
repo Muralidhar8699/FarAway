@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { TeamBadge } from "@/components/TeamBadge";
@@ -7,13 +8,32 @@ import { formatDateTime, MATCH_STATUS_LABELS, STAGE_LABELS } from "@/lib/labels"
 import type { Match, Team } from "@/types/db";
 
 /** One fixture or result. Team names link to their team pages. */
-export function MatchCard({ match: m, teamA, teamB }: { match: Match; teamA?: Team; teamB?: Team }) {
+export function MatchCard({
+  match: m,
+  teamA,
+  teamB,
+  sourceA,
+  sourceB,
+  action,
+  stageName,
+}: {
+  match: Match;
+  teamA?: Team;
+  teamB?: Team;
+  /** Shown when the team isn't known yet, e.g. "Winner of Qualifier 1". */
+  sourceA?: string;
+  sourceB?: string;
+  /** Optional button row, e.g. "Reschedule" for the organizer. */
+  action?: ReactNode;
+  /** Name within the stage, e.g. "Semi-final 2". Defaults to the stage name. */
+  stageName?: string;
+}) {
   return (
     <Card className="py-4">
       <CardContent className="flex flex-col gap-3 px-4">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>
-            Match {m.match_number} · {STAGE_LABELS[m.stage]}
+            Match {m.match_number} · {stageName ?? STAGE_LABELS[m.stage]}
             {m.venue ? ` · ${m.venue}` : ""}
           </span>
           {m.status === "live" ? (
@@ -23,9 +43,16 @@ export function MatchCard({ match: m, teamA, teamB }: { match: Match; teamA?: Te
           )}
         </div>
         <div className="flex flex-col gap-2">
-          {[teamA, teamB].map((team, i) => (
+          {[
+            { team: teamA, source: sourceA },
+            { team: teamB, source: sourceB },
+          ].map(({ team, source }, i) => (
             <div key={i} className="flex items-center gap-2">
-              {team ? <TeamBadge team={team} size="sm" /> : <span className="size-8 rounded-full bg-muted" />}
+              {team ? (
+                <TeamBadge team={team} size="sm" />
+              ) : (
+                <span className="size-8 shrink-0 rounded-full border border-dashed bg-muted" />
+              )}
               {team ? (
                 <Link
                   to={`/tournaments/${m.tournament_id}/teams/${team.id}`}
@@ -34,12 +61,13 @@ export function MatchCard({ match: m, teamA, teamB }: { match: Match; teamA?: Te
                   {team.name}
                 </Link>
               ) : (
-                <span className="text-muted-foreground">To be decided</span>
+                <span className="text-muted-foreground italic">{source ?? "To be decided"}</span>
               )}
             </div>
           ))}
         </div>
         {m.result_text && <p className="text-sm font-medium">{m.result_text}</p>}
+        {action}
       </CardContent>
     </Card>
   );

@@ -108,10 +108,14 @@ create table matches (
   id uuid primary key default gen_random_uuid(),
   tournament_id uuid not null references tournaments(id) on delete cascade,
   stage text not null default 'league' check (stage in (
-    'league', 'qualifier_1', 'eliminator', 'qualifier_2', 'quarter_final', 'semi_final', 'final')),
+    'league', 'round_of_32', 'round_of_16', 'qualifier_1', 'eliminator', 'qualifier_2',
+    'quarter_final', 'semi_final', 'final')),
   match_number int not null,
   team_a_id uuid references teams(id),
   team_b_id uuid references teams(id),
+  -- Placeholder for a team not known yet: 'R:1' (league rank), 'W:12' / 'L:12' (winner/loser of match 12).
+  team_a_from text check (team_a_from ~ '^(R|W|L):[0-9]+$'),
+  team_b_from text check (team_b_from ~ '^(R|W|L):[0-9]+$'),
   venue text,
   scheduled_at timestamptz,
   status text not null default 'scheduled'

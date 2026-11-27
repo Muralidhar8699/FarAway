@@ -3,6 +3,7 @@
 // add supabaseApi.ts with the same functions and switch the export below.
 
 import type { Match, Player, SquadPlayer, Team, Tournament } from "@/types/db";
+import type { ScheduleOptions } from "@/lib/fixtures";
 import type { SquadRole } from "@/lib/squad";
 import { mockApi } from "./mock/mockApi";
 
@@ -47,6 +48,13 @@ export interface DataApi {
   setTeamStatus(teamId: string, status: "approved" | "rejected"): Promise<Team>;
 
   listMatches(tournamentId: string): Promise<Match[]>;
+  /**
+   * Organizer only. Replaces all fixtures with new ones for the approved teams and
+   * closes registration. Not allowed once any match has started.
+   */
+  generateFixtures(tournamentId: string, schedule: ScheduleOptions): Promise<Match[]>;
+  /** Organizer only, for matches that haven't started: change date/time and venue. */
+  rescheduleMatch(matchId: string, changes: { scheduled_at: string; venue: string | null }): Promise<Match>;
 
   /** Dummy-data only: put the demo data back to how it started. */
   resetDemoData(): Promise<void>;

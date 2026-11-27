@@ -188,7 +188,7 @@ export function TournamentPage() {
           <TeamsTab tournament={t} teams={teams} squadCounts={squadCounts} isOrganizer={isOrganizer} onChanged={reload} />
         </TabsContent>
         <TabsContent value="fixtures" className="mt-4">
-          <FixturesTab matches={matches} teams={teams} />
+          <FixturesTab tournament={t} matches={matches} teams={teams} isOrganizer={isOrganizer} onChanged={reload} />
         </TabsContent>
         <TabsContent value="table" className="mt-4">
           <ComingSoon

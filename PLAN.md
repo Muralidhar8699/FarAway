@@ -51,7 +51,7 @@ TourneyHub is for all sports. We build **cricket first**; other sports come late
 - [x] **4.4** Squad lock when the registration deadline passes
 
 ## Phase 5: Fixtures & Schedule
-- [ ] **5.1** Auto-generate league fixtures (round-robin)
+- [x] **5.1** Auto-generate fixtures: round-robin league (once or twice) with playoff placeholders, or a knockout bracket with byes; redo until the first match starts
 - [ ] **5.2** Set the date, time and venue for each match; edit or reschedule
 - [ ] **5.3** Schedule page (upcoming, live, completed)
 
