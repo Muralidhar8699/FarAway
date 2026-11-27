@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, CalendarDays, MapPin, Shield, TriangleAlert, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Shield, TriangleAlert, UserPlus, Users } from "lucide-react";
 
 import { MatchCard } from "@/components/MatchCard";
 import { TeamBadge } from "@/components/TeamBadge";
@@ -8,13 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/data/api";
+import { PlayerFormDialog } from "@/features/squad/PlayerFormDialog";
 import { ComingSoon } from "@/features/tournaments/dashboard/ComingSoon";
 import { useAsync } from "@/hooks/useAsync";
 import { PLAYER_ROLE_LABELS, TEAM_STATUS_LABELS } from "@/lib/labels";
+import { getSquadAccess } from "@/lib/squad";
 import type { Match, PlayerRole, SquadPlayer } from "@/types/db";
 
 async function loadTeam(tournamentId: string, teamId: string) {
-  const [tournament, team] = await Promise.all([api.getTournament(tournamentId), api.getTeam(teamId)]);
+  const [tournament, team, userId] = await Promise.all([
+    api.getTournament(tournamentId),
+    api.getTeam(teamId),
+    api.getCurrentUserId(),
+  ]);
   if (!tournament || !team || team.tournament_id !== tournament.id) return null;
   const [squad, matches, teams] = await Promise.all([
     api.listSquad(team.id),
@@ -24,6 +31,7 @@ async function loadTeam(tournamentId: string, teamId: string) {
   return {
     tournament,
     team,
+    userId,
     squad,
     teams,
     matches: matches.filter((m) => m.team_a_id === team.id || m.team_b_id === team.id),
@@ -48,7 +56,8 @@ const ROLE_GROUP_TITLES: Record<PlayerRole, string> = {
 
 export function TeamPage() {
   const { id = "", teamId = "" } = useParams();
-  const { status, data } = useAsync(() => loadTeam(id, teamId), [id, teamId]);
+  const { status, data, reload } = useAsync(() => loadTeam(id, teamId), [id, teamId]);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   if (status === "loading") {
     return (
@@ -71,7 +80,9 @@ export function TeamPage() {
     );
   }
 
-  const { tournament: t, team, squad, matches, teams } = data;
+  const { tournament: t, team, squad, matches, teams, userId } = data;
+  const access = getSquadAccess(t, team, userId);
+  const squadFull = squad.length >= t.max_squad_size;
   const rec = record(matches, team.id);
   const short = t.min_squad_size - squad.length;
   const upcoming = matches.filter((m) => m.status === "live" || m.status === "scheduled");
@@ -123,16 +134,36 @@ export function TeamPage() {
         ))}
       </dl>
 
+      <PlayerFormDialog
+        teamId={team.id}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editing={null}
+        onSaved={reload}
+      />
+
       <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="size-5" /> Squad
-            </CardTitle>
-            <CardDescription>
-              {squad.length} player{squad.length === 1 ? "" : "s"} · squad size {t.min_squad_size}–
-              {t.max_squad_size}
-            </CardDescription>
+          <CardHeader className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-col gap-1.5">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="size-5" /> Squad
+              </CardTitle>
+              <CardDescription>
+                {squad.length} player{squad.length === 1 ? "" : "s"} · squad size {t.min_squad_size}–
+                {t.max_squad_size}
+              </CardDescription>
+            </div>
+            {access.canEdit && (
+              <Button
+                size="sm"
+                onClick={() => setDialogOpen(true)}
+                disabled={squadFull}
+                title={squadFull ? `The squad is full (${t.max_squad_size} players)` : undefined}
+              >
+                <UserPlus /> Add player
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             {short > 0 && (
@@ -143,7 +174,7 @@ export function TeamPage() {
             )}
             {squad.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No players yet. Adding players to the squad comes in Phase 4.
+                {access.canEdit ? "No players yet. Tap Add player to build your squad." : "No players added yet."}
               </p>
             ) : (
               <SquadList squad={squad} />

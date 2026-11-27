@@ -234,7 +234,7 @@ function PointsSection() {
           </Field>
         ))}
       </div>
-      <FieldError errors={pointFields.map((f) => errors[f.name])} />
+      <FieldError errors={pointFields.map((f) => errors[f.name]).filter(Boolean)} />
 
       <Controller
         control={form.control}

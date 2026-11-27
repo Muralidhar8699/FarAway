@@ -2,13 +2,19 @@
 // Today it is backed by dummy data (mock/mockApi.ts). When Supabase is ready,
 // add supabaseApi.ts with the same functions and switch the export below.
 
-import type { Match, SquadPlayer, Team, Tournament } from "@/types/db";
+import type { Match, Player, SquadPlayer, Team, Tournament } from "@/types/db";
+import type { SquadRole } from "@/lib/squad";
 import { mockApi } from "./mock/mockApi";
 
 export type NewTournament = Omit<
   Tournament,
   "id" | "invite_code" | "created_by" | "created_at" | "status"
 >;
+
+/** A player's profile plus their shirt number in this squad. */
+export type SquadPlayerInput = Pick<Player, "full_name" | "photo_url" | "role" | "batting_style" | "bowling_style"> & {
+  jersey_number: number | null;
+};
 
 export type NewTeam = Pick<Team, "name" | "short_name" | "logo_url" | "primary_color" | "home_ground">;
 
@@ -31,6 +37,12 @@ export interface DataApi {
   listSquad(teamId: string): Promise<SquadPlayer[]>;
   /** Registers a team as "pending". Fails if registration is closed/full or the name is taken. */
   createTeam(tournamentId: string, input: NewTeam): Promise<Team>;
+  /** Team owner or organizer. Fails if the squad is full or locked, or the jersey number is taken. */
+  addSquadPlayer(teamId: string, input: SquadPlayerInput): Promise<SquadPlayer>;
+  updateSquadPlayer(teamId: string, playerId: string, input: SquadPlayerInput): Promise<SquadPlayer>;
+  removeSquadPlayer(teamId: string, playerId: string): Promise<void>;
+  /** Makes this player captain / vice-captain / wicketkeeper, taking the role from anyone else. */
+  setSquadRole(teamId: string, playerId: string, role: SquadRole): Promise<void>;
   /** Organizer only: approve or reject a team. */
   setTeamStatus(teamId: string, status: "approved" | "rejected"): Promise<Team>;
 

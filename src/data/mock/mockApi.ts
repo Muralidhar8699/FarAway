@@ -1,9 +1,10 @@
 // Dummy-data version of the API. Data is kept in the browser (localStorage)
 // so changes survive a page refresh. "Reset demo data" brings back the seed.
 
-import { ApiError, type DataApi } from "@/data/api";
+import { ApiError, type DataApi, type SquadPlayerInput } from "@/data/api";
 import { canApproveTeam, getRegistrationState, normalizeName } from "@/lib/registration";
-import type { Team, Tournament } from "@/types/db";
+import { assignSquadRole, getSquadAccess, MAX_JERSEY_NUMBER } from "@/lib/squad";
+import type { Player, SquadMember, SquadPlayer, Team, Tournament } from "@/types/db";
 import { createSeedData, DEMO_USER_ID, type MockDb } from "./seed";
 
 const STORAGE_KEY = "tourneyhub-mock-db-v5";
@@ -42,6 +43,34 @@ function makeId(prefix: string) {
 function makeInviteCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
+
+/** Loads a team and checks the demo user may change its squad. */
+function editableSquad(teamId: string) {
+  const team = db.teams.find((t) => t.id === teamId);
+  if (!team) throw new ApiError("Team not found.");
+  const tournament = db.tournaments.find((t) => t.id === team.tournament_id);
+  if (!tournament) throw new ApiError("Tournament not found.");
+  const access = getSquadAccess(tournament, team, DEMO_USER_ID);
+  if (!access.canEdit) throw new ApiError(access.reason);
+  return { team, tournament, squad: db.squad_members.filter((m) => m.team_id === teamId) };
+}
+
+function checkPlayerInput(input: SquadPlayerInput, squad: SquadMember[], exceptPlayerId?: string) {
+  if (input.full_name.trim().length < 2) throw new ApiError("Player name must be at least 2 characters.");
+  const n = input.jersey_number;
+  if (n !== null) {
+    if (!Number.isInteger(n) || n < 0 || n > MAX_JERSEY_NUMBER) {
+      throw new ApiError(`Jersey number must be 0–${MAX_JERSEY_NUMBER}.`);
+    }
+    if (squad.some((m) => m.jersey_number === n && m.player_id !== exceptPlayerId)) {
+      throw new ApiError(`Jersey number ${n} is already taken in this squad.`);
+    }
+  }
+}
+
+function toSquadPlayer(member: SquadMember): SquadPlayer {
+  return { ...member, player: db.players.find((p) => p.id === member.player_id)! };
 }
 
 export const mockApi: DataApi = {
@@ -143,6 +172,76 @@ export const mockApi: DataApi = {
     db.teams.push(team);
     save();
     return delay(team);
+  },
+
+  async addSquadPlayer(teamId, input) {
+    const { tournament, squad } = editableSquad(teamId);
+    if (squad.length >= tournament.max_squad_size) {
+      throw new ApiError(`The squad is full (${tournament.max_squad_size} players).`);
+    }
+    checkPlayerInput(input, squad);
+    const player: Player = {
+      id: makeId("player"),
+      full_name: input.full_name.trim().replace(/\s+/g, " "),
+      photo_url: input.photo_url,
+      role: input.role,
+      batting_style: input.batting_style,
+      bowling_style: input.bowling_style,
+      created_by: DEMO_USER_ID,
+    };
+    const member: SquadMember = {
+      team_id: teamId,
+      player_id: player.id,
+      jersey_number: input.jersey_number,
+      is_captain: false,
+      is_vice_captain: false,
+      is_wicket_keeper: false,
+    };
+    db.players.push(player);
+    db.squad_members.push(member);
+    save();
+    return delay(toSquadPlayer(member));
+  },
+
+  async updateSquadPlayer(teamId, playerId, input) {
+    const { squad } = editableSquad(teamId);
+    const member = squad.find((m) => m.player_id === playerId);
+    const player = db.players.find((p) => p.id === playerId);
+    if (!member || !player) throw new ApiError("Player not found in this squad.");
+    checkPlayerInput(input, squad, playerId);
+    Object.assign(player, {
+      full_name: input.full_name.trim().replace(/\s+/g, " "),
+      photo_url: input.photo_url,
+      role: input.role,
+      batting_style: input.batting_style,
+      bowling_style: input.bowling_style,
+    });
+    member.jersey_number = input.jersey_number;
+    save();
+    return delay(toSquadPlayer(member));
+  },
+
+  async removeSquadPlayer(teamId, playerId) {
+    const { squad } = editableSquad(teamId);
+    if (!squad.some((m) => m.player_id === playerId)) throw new ApiError("Player not found in this squad.");
+    db.squad_members = db.squad_members.filter((m) => !(m.team_id === teamId && m.player_id === playerId));
+    // The profile goes too, unless the player is also in another squad.
+    if (!db.squad_members.some((m) => m.player_id === playerId)) {
+      db.players = db.players.filter((p) => p.id !== playerId);
+    }
+    save();
+    return delay(undefined);
+  },
+
+  async setSquadRole(teamId, playerId, role) {
+    const { squad } = editableSquad(teamId);
+    if (!squad.some((m) => m.player_id === playerId)) throw new ApiError("Player not found in this squad.");
+    const updated = assignSquadRole(squad, playerId, role);
+    db.squad_members = db.squad_members.map((m) =>
+      m.team_id === teamId ? updated.find((u) => u.player_id === m.player_id)! : m
+    );
+    save();
+    return delay(undefined);
   },
 
   async setTeamStatus(teamId, status) {
