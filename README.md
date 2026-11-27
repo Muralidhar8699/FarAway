@@ -1,6 +1,6 @@
-# Cricket Tournament
+# TourneyHub
 
-Tournament manager for gully and professional cricket: knockouts (quarter-finals, semi-finals, final), league rounds and live ball-by-ball scoring.
+Tournament manager for any sport, starting with gully and professional cricket: knockouts (quarter-finals, semi-finals, final), league rounds and live ball-by-ball scoring.
 
 **Stack:** React 19 · TypeScript · Vite · Tailwind CSS v4 · shadcn/ui · Supabase
 

@@ -33,7 +33,7 @@ export function Header() {
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
         <Link to="/" className="flex items-center gap-2 font-bold">
           <Trophy className="size-5" />
-          <span>CricTourney</span>
+          <span>TourneyHub</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

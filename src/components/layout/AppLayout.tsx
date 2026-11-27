@@ -10,7 +10,7 @@ export function AppLayout() {
         <Outlet />
       </main>
       <footer className="border-t py-4 text-center text-xs text-muted-foreground">
-        CricTourney: run your own cricket league
+        TourneyHub: run your own tournament
       </footer>
     </div>
   );

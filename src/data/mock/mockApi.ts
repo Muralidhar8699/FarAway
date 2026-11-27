@@ -5,11 +5,13 @@ import type { DataApi } from "@/data/api";
 import type { Tournament } from "@/types/db";
 import { createSeedData, DEMO_USER_ID, type MockDb } from "./seed";
 
-const STORAGE_KEY = "crictourney-mock-db-v5";
+const STORAGE_KEY = "tourneyhub-mock-db-v5";
+/** Same data saved under the app's old name; moved over on first load. */
+const OLD_STORAGE_KEY = "crictourney-mock-db-v5";
 
 function load(): MockDb {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(OLD_STORAGE_KEY);
     if (raw) return JSON.parse(raw) as MockDb;
   } catch {
     // storage unavailable or corrupt: fall back to fresh seed data
@@ -22,6 +24,7 @@ let db: MockDb = load();
 function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    localStorage.removeItem(OLD_STORAGE_KEY);
   } catch {
     // ignore: data still lives in memory for this session
   }

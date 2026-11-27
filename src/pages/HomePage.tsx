@@ -22,7 +22,7 @@ export function HomePage() {
   return (
     <div className="flex flex-col gap-10">
       <section className="flex flex-col items-center gap-4 py-8 text-center">
-        <Badge variant="secondary">Gully &amp; professional cricket</Badge>
+        <Badge variant="secondary">Cricket today · more sports coming soon</Badge>
         <h1 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-5xl">
           Run your own IPL-style tournament
         </h1>

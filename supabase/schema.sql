@@ -1,4 +1,4 @@
--- CricTourney database schema.
+-- TourneyHub database schema.
 -- Matches src/types/db.ts one to one. Not run yet: the app uses dummy data
 -- (src/data/mock) until a Supabase project is connected.
 -- To use: Supabase dashboard -> SQL Editor -> New query -> paste -> Run.

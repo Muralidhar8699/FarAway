@@ -1,8 +1,8 @@
-# Cricket Tournament App: Build Plan
+# TourneyHub: Build Plan
 
 The app works the way an IPL season is prepared: the **organizer** creates the tournament and its rules, **teams** register like franchises, each team adds its **squad**, the **fixtures** are generated, matches are **scored live**, and the **points table** decides the **playoffs** and the **champion**.
 
-Cricket only for now. Other sports come later.
+TourneyHub is for all sports. We build **cricket first**; other sports come later (see "Later" at the bottom).
 
 **How we work:** build one sub-phase at a time. When it's finished and checked, tick it `[x]`.
 
