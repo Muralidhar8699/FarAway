@@ -22,7 +22,7 @@ import {
 import { DetailsStep } from "@/features/tournaments/DetailsStep";
 import { RulesStep } from "@/features/tournaments/RulesStep";
 import { StepIndicator } from "@/features/tournaments/StepIndicator";
-import { DEFAULT_TOURNAMENT_RULES } from "@/lib/tournamentDefaults";
+import { DEFAULT_MODE, DEFAULT_TOURNAMENT_RULES, RULE_PRESETS } from "@/lib/tournamentDefaults";
 
 const STEPS = [
   {
@@ -36,7 +36,7 @@ const STEPS = [
     key: "rules",
     title: "Rules",
     cardTitle: "Match rules",
-    description: "How each match is played. You can change these later.",
+    description: "Pick gully or professional, then adjust any rule.",
     Component: RulesStep,
   },
 ] as const;
@@ -55,15 +55,8 @@ export function CreateTournamentPage() {
       start_date: "",
       end_date: "",
       venues: [],
-      overs_per_innings: DEFAULT_TOURNAMENT_RULES.overs_per_innings,
-      players_per_side: DEFAULT_TOURNAMENT_RULES.players_per_side,
-      powerplay_overs: DEFAULT_TOURNAMENT_RULES.powerplay_overs,
-      max_overs_per_bowler: DEFAULT_TOURNAMENT_RULES.max_overs_per_bowler,
-      wide_runs: DEFAULT_TOURNAMENT_RULES.wide_runs,
-      no_ball_runs: DEFAULT_TOURNAMENT_RULES.no_ball_runs,
-      free_hit_on_no_ball: DEFAULT_TOURNAMENT_RULES.free_hit_on_no_ball,
-      last_man_stands: DEFAULT_TOURNAMENT_RULES.last_man_stands,
-      super_over_on_tie: DEFAULT_TOURNAMENT_RULES.super_over_on_tie,
+      mode: DEFAULT_MODE,
+      ...RULE_PRESETS[DEFAULT_MODE],
     },
   });
   const { isSubmitting } = form.formState;
@@ -84,7 +77,13 @@ export function CreateTournamentPage() {
   async function onValid(values: CreateTournamentValues) {
     setSubmitError(null);
     try {
-      const tournament = await api.createTournament({ ...DEFAULT_TOURNAMENT_RULES, ...values });
+      const tournament = await api.createTournament({
+        ...DEFAULT_TOURNAMENT_RULES,
+        ...values,
+        // Until squad sizes get their own fields (Phase 2.6), base them on players per side.
+        min_squad_size: values.players_per_side,
+        max_squad_size: values.players_per_side + 4,
+      });
       navigate("/tournaments", { state: { createdName: tournament.name } });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

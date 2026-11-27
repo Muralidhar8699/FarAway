@@ -38,6 +38,7 @@ export const createTournamentSchema = z
       .max(MAX_VENUES, `You can add up to ${MAX_VENUES} venues`),
 
     // Step 2: match rules
+    mode: z.enum(["gully", "professional"]),
     overs_per_innings: wholeNumber("number of overs", 1, 50),
     players_per_side: wholeNumber("number of players", 2, 11),
     powerplay_overs: wholeNumber("powerplay overs", 0, 20),
@@ -83,6 +84,7 @@ export type CreateTournamentValues = z.infer<typeof createTournamentSchema>;
 export const STEP_FIELDS = {
   details: ["name", "season", "logo_url", "start_date", "end_date", "venues"],
   rules: [
+    "mode",
     "overs_per_innings",
     "players_per_side",
     "powerplay_overs",
