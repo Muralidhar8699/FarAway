@@ -217,9 +217,22 @@ create policy "organizer deletes team" on teams for delete using (is_organizer(t
 create policy "create players" on players for insert with check (created_by = auth.uid());
 create policy "creator edits player" on players for update using (created_by = auth.uid());
 
+-- Owners can change their squad until squads lock (deadline passed or tournament
+-- started); the organizer can always change it (e.g. injury replacements).
+create function squad_locked(t uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select status in ('ongoing', 'completed')
+         or (registration_deadline is not null and registration_deadline <= now())
+  from tournaments where id = t;
+$$;
+
 create policy "owner or organizer manages squad" on squad_members for all
-  using (exists (select 1 from teams t where t.id = team_id
-                 and (t.owner_id = auth.uid() or is_organizer(t.tournament_id))));
+  using (exists (select 1 from teams t where t.id = team_id and t.status <> 'rejected'
+                 and (is_organizer(t.tournament_id)
+                      or (t.owner_id = auth.uid() and not squad_locked(t.tournament_id)))))
+  with check (exists (select 1 from teams t where t.id = team_id and t.status <> 'rejected'
+                 and (is_organizer(t.tournament_id)
+                      or (t.owner_id = auth.uid() and not squad_locked(t.tournament_id)))));
 
 create policy "organizer manages matches" on matches for all
   using (is_organizer(tournament_id)) with check (is_organizer(tournament_id));

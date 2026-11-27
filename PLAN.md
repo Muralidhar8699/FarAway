@@ -48,7 +48,7 @@ TourneyHub is for all sports. We build **cricket first**; other sports come late
 - [x] **4.1** Player profile: name, photo, jersey number, role (batter, bowler, all-rounder, wicketkeeper), batting and bowling style
 - [x] **4.2** Add players to a team squad (within min/max squad size)
 - [x] **4.3** Pick captain, vice-captain and wicketkeeper
-- [ ] **4.4** Squad lock when the registration deadline passes
+- [x] **4.4** Squad lock when the registration deadline passes
 
 ## Phase 5: Fixtures & Schedule
 - [ ] **5.1** Auto-generate league fixtures (round-robin)

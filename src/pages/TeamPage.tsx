@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, CalendarDays, MapPin, Shield, TriangleAlert, UserPlus, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Lock, MapPin, Shield, TriangleAlert, UserPlus, Users } from "lucide-react";
 
 import { MatchCard } from "@/components/MatchCard";
 import { TeamBadge } from "@/components/TeamBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/data/api";
 import { PlayerFormDialog } from "@/features/squad/PlayerFormDialog";
 import { SquadList } from "@/features/squad/SquadList";
 import { ComingSoon } from "@/features/tournaments/dashboard/ComingSoon";
 import { useAsync } from "@/hooks/useAsync";
-import { TEAM_STATUS_LABELS } from "@/lib/labels";
-import { getSquadAccess } from "@/lib/squad";
+import { formatDateTime, TEAM_STATUS_LABELS } from "@/lib/labels";
+import { getSquadAccess, isSquadLocked } from "@/lib/squad";
 import type { Match, SquadPlayer } from "@/types/db";
 
 async function loadTeam(tournamentId: string, teamId: string) {
@@ -77,6 +77,8 @@ export function TeamPage() {
   const { tournament: t, team, squad, matches, teams, userId } = data;
   const access = getSquadAccess(t, team, userId);
   const squadFull = squad.length >= t.max_squad_size;
+  const locked = isSquadLocked(t);
+  const canSeeLockInfo = access.canEdit || team.owner_id === userId;
   const rec = record(matches, team.id);
   const short = t.min_squad_size - squad.length;
   const upcoming = matches.filter((m) => m.status === "live" || m.status === "scheduled");
@@ -136,33 +138,42 @@ export function TeamPage() {
         onSaved={reload}
       />
 
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+      <div className="grid gap-6 lg:grid-cols-[3fr_2fr] [&>*]:min-w-0">
         <Card>
-          <CardHeader className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex flex-col gap-1.5">
-              <CardTitle className="flex items-center gap-2">
-                <Users className="size-5" /> Squad
-              </CardTitle>
-              <CardDescription>
-                {squad.length} player{squad.length === 1 ? "" : "s"} · squad size {t.min_squad_size}–
-                {t.max_squad_size}
-              </CardDescription>
-            </div>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="size-5" /> Squad
+            </CardTitle>
+            <CardDescription>
+              {squad.length} player{squad.length === 1 ? "" : "s"}
+              {squadFull ? " (full)" : ""} · squad size {t.min_squad_size}–
+              {t.max_squad_size}
+            </CardDescription>
             {access.canEdit && (
-              <Button
-                size="sm"
-                onClick={() => {
-                  setEditing(null);
-                  setDialogOpen(true);
-                }}
-                disabled={squadFull}
-                title={squadFull ? `The squad is full (${t.max_squad_size} players)` : undefined}
-              >
-                <UserPlus /> Add player
-              </Button>
+              <CardAction>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditing(null);
+                    setDialogOpen(true);
+                  }}
+                  disabled={squadFull}
+                  title={squadFull ? `The squad is full (${t.max_squad_size} players)` : undefined}
+                >
+                  <UserPlus /> Add player
+                </Button>
+              </CardAction>
             )}
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
+            {canSeeLockInfo && (
+              <LockNotice
+                locked={locked}
+                deadline={t.registration_deadline}
+                started={t.status === "ongoing" || t.status === "completed"}
+                asOrganizer={access.canEdit && access.asOrganizer}
+              />
+            )}
             {short > 0 && (
               <p className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
                 <TriangleAlert className="size-4 shrink-0 text-amber-600" />
@@ -211,5 +222,40 @@ export function TeamPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+/** Tells editors when squads lock, or that they're locked and who can still change them. */
+function LockNotice({
+  locked,
+  deadline,
+  started,
+  asOrganizer,
+}: {
+  locked: boolean;
+  deadline: string | null;
+  started: boolean;
+  asOrganizer: boolean;
+}) {
+  if (!locked) {
+    if (!deadline) return null;
+    return (
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Clock className="size-4 shrink-0" />
+        Squad changes close {formatDateTime(deadline)}.
+      </p>
+    );
+  }
+  const why = started ? "The tournament has started" : `Registration closed ${deadline ? formatDateTime(deadline) : ""}`;
+  return (
+    <p className="flex items-start gap-2 rounded-lg border bg-muted/50 px-3 py-2 text-sm">
+      <Lock className="mt-0.5 size-4 shrink-0" />
+      <span>
+        <strong>Squads are locked.</strong> {why}.{" "}
+        {asOrganizer
+          ? "As the organizer you can still make changes, e.g. injury replacements."
+          : "Ask the organizer if you need a replacement."}
+      </span>
+    </p>
   );
 }

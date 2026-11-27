@@ -59,7 +59,10 @@ export function OverviewTab({
               ["Approved teams", `${approved} of ${t.max_teams}`],
               ["Waiting for approval", String(pending)],
               ["Squad size", `${t.min_squad_size}–${t.max_squad_size} players`],
-              ["Registration closes", t.registration_deadline ? formatDateTime(t.registration_deadline) : "When the organizer closes it"],
+              [
+                "Registration closes & squads lock",
+                t.registration_deadline ? formatDateTime(t.registration_deadline) : "When the tournament starts",
+              ],
             ]}
           />
         </CardContent>
