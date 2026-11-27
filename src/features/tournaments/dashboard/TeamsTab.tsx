@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TEAM_STATUS_LABELS } from "@/lib/labels";
 import type { Team, Tournament } from "@/types/db";
+import { TeamBadge } from "@/components/TeamBadge";
 import { ComingSoon } from "./ComingSoon";
 
 const STATUS_ORDER = { approved: 0, pending: 1, rejected: 2 } as const;
@@ -56,22 +57,5 @@ export function TeamsTab({
         </Card>
       ))}
     </div>
-  );
-}
-
-/** Coloured circle with the team's short name, or its logo. */
-export function TeamBadge({ team, size = "md" }: { team: Team; size?: "sm" | "md" }) {
-  const dims = size === "sm" ? "size-8 text-[10px]" : "size-11 text-xs";
-  if (team.logo_url) {
-    return <img src={team.logo_url} alt="" className={`${dims} shrink-0 rounded-full border object-cover`} />;
-  }
-  return (
-    <span
-      className={`${dims} flex shrink-0 items-center justify-center rounded-full font-bold text-white`}
-      style={{ backgroundColor: team.primary_color }}
-      aria-hidden
-    >
-      {team.short_name}
-    </span>
   );
 }

@@ -10,6 +10,11 @@ export type NewTournament = Omit<
   "id" | "invite_code" | "created_by" | "created_at" | "status"
 >;
 
+export type NewTeam = Pick<Team, "name" | "short_name" | "logo_url" | "primary_color" | "home_ground">;
+
+/** An error with a message that is safe to show to the user. */
+export class ApiError extends Error {}
+
 export interface DataApi {
   /** The logged-in user's id, or null. Dummy data: always the demo organizer. */
   getCurrentUserId(): Promise<string | null>;
@@ -24,6 +29,10 @@ export interface DataApi {
   listTeams(tournamentId: string): Promise<Team[]>;
   getTeam(id: string): Promise<Team | null>;
   listSquad(teamId: string): Promise<SquadPlayer[]>;
+  /** Registers a team as "pending". Fails if registration is closed/full or the name is taken. */
+  createTeam(tournamentId: string, input: NewTeam): Promise<Team>;
+  /** Organizer only: approve or reject a team. */
+  setTeamStatus(teamId: string, status: "approved" | "rejected"): Promise<Team>;
 
   listMatches(tournamentId: string): Promise<Match[]>;
 

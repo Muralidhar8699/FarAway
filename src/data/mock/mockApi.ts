@@ -1,8 +1,9 @@
 // Dummy-data version of the API. Data is kept in the browser (localStorage)
 // so changes survive a page refresh. "Reset demo data" brings back the seed.
 
-import type { DataApi } from "@/data/api";
-import type { Tournament } from "@/types/db";
+import { ApiError, type DataApi } from "@/data/api";
+import { canApproveTeam, getRegistrationState, normalizeName } from "@/lib/registration";
+import type { Team, Tournament } from "@/types/db";
 import { createSeedData, DEMO_USER_ID, type MockDb } from "./seed";
 
 const STORAGE_KEY = "tourneyhub-mock-db-v5";
@@ -110,6 +111,53 @@ export const mockApi: DataApi = {
       .filter((m) => m.tournament_id === tournamentId)
       .sort((a, b) => a.match_number - b.match_number);
     return delay(list);
+  },
+
+  async createTeam(tournamentId, input) {
+    const tournament = db.tournaments.find((t) => t.id === tournamentId);
+    if (!tournament) throw new ApiError("Tournament not found.");
+    const state = getRegistrationState(tournament, db.teams);
+    if (!state.open) throw new ApiError(state.message);
+
+    const others = db.teams.filter((t) => t.tournament_id === tournamentId && t.status !== "rejected");
+    if (others.some((t) => normalizeName(t.name) === normalizeName(input.name))) {
+      throw new ApiError(`A team called "${input.name.trim()}" is already registered.`);
+    }
+    const shortName = input.short_name.trim().toUpperCase();
+    if (others.some((t) => t.short_name === shortName)) {
+      throw new ApiError(`The short name "${shortName}" is already taken.`);
+    }
+
+    const team: Team = {
+      id: makeId("team"),
+      tournament_id: tournamentId,
+      name: input.name.trim().replace(/\s+/g, " "),
+      short_name: shortName,
+      logo_url: input.logo_url,
+      primary_color: input.primary_color,
+      home_ground: input.home_ground?.trim() || null,
+      owner_id: DEMO_USER_ID,
+      status: "pending",
+      created_at: new Date().toISOString(),
+    };
+    db.teams.push(team);
+    save();
+    return delay(team);
+  },
+
+  async setTeamStatus(teamId, status) {
+    const team = db.teams.find((t) => t.id === teamId);
+    if (!team) throw new ApiError("Team not found.");
+    const tournament = db.tournaments.find((t) => t.id === team.tournament_id);
+    if (!tournament || tournament.created_by !== DEMO_USER_ID) {
+      throw new ApiError("Only the organizer can approve or reject teams.");
+    }
+    if (status === "approved" && team.status !== "approved" && !canApproveTeam(tournament, db.teams)) {
+      throw new ApiError(`Can't approve: the tournament already has ${tournament.max_teams} approved teams.`);
+    }
+    team.status = status;
+    save();
+    return delay(team);
   },
 
   async resetDemoData() {

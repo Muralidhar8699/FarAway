@@ -40,7 +40,7 @@ TourneyHub is for all sports. We build **cricket first**; other sports come late
 - [x] **2.7** Tournament dashboard page (overview, teams, fixtures, table, stats tabs), invite code and link, open registration; /join/:code landing page (sign-up form comes in 3.1)
 
 ## Phase 3: Team Registration (franchises)
-- [ ] **3.1** Team owner joins with the invite link and registers a team: name, short name (e.g. "CSK"), logo, colours, home ground
+- [x] **3.1** Team owner joins with the invite link and registers a team: name, short name (e.g. "CSK"), logo, colours, home ground
 - [ ] **3.2** Organizer approves or rejects teams
 - [ ] **3.3** Team page: details, squad, matches, results
 

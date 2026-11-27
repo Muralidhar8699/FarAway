@@ -195,8 +195,15 @@ create policy "creator becomes organizer" on tournament_members for insert
               and exists (select 1 from tournaments t where t.id = tournament_id and t.created_by = auth.uid()));
 
 create policy "owner registers team" on teams for insert
-  with check (owner_id = auth.uid() and status = 'pending');
--- TODO Phase 3: add a trigger so only the organizer can change teams.status.
+  with check (
+    owner_id = auth.uid() and status = 'pending'
+    and exists (
+      select 1 from tournaments t
+      where t.id = tournament_id and t.status = 'registration'
+        and (t.registration_deadline is null or t.registration_deadline > now())
+        and (select count(*) from teams x where x.tournament_id = t.id and x.status <> 'rejected') < t.max_teams
+    )
+  );
 create policy "owner or organizer edits team" on teams for update
   using (owner_id = auth.uid() or is_organizer(tournament_id));
 create policy "organizer deletes team" on teams for delete using (is_organizer(tournament_id));
@@ -214,6 +221,27 @@ create policy "scorer updates match" on matches for update using (can_score(id))
 
 create policy "scorer records balls" on balls for all
   using (can_score(match_id)) with check (can_score(match_id));
+
+-- Only the organizer can approve/reject, and approved teams can't exceed max_teams.
+create function check_team_status_change() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.status is distinct from old.status then
+    if not is_organizer(new.tournament_id) then
+      raise exception 'Only the organizer can approve or reject teams';
+    end if;
+    if new.status = 'approved' and (
+      select count(*) from teams where tournament_id = new.tournament_id and status = 'approved' and id <> new.id
+    ) >= (select max_teams from tournaments where id = new.tournament_id) then
+      raise exception 'This tournament already has the maximum number of approved teams';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger team_status_guard before update on teams
+  for each row execute function check_team_status_change();
 
 -- ---------- Realtime (live scores) ----------
 alter publication supabase_realtime add table balls, matches;

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatDateTime, MATCH_STATUS_LABELS, STAGE_LABELS } from "@/lib/labels";
 import type { Match, Team } from "@/types/db";
 import { ComingSoon } from "./ComingSoon";
-import { TeamBadge } from "./TeamsTab";
+import { TeamBadge } from "@/components/TeamBadge";
 
 export function FixturesTab({ matches, teams }: { matches: Match[]; teams: Team[] }) {
   if (matches.length === 0) {
