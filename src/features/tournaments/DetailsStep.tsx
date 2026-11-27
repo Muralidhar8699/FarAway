@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { ImagePlus, Loader2, MapPin, Plus, Trophy, X } from "lucide-react";
+import { MapPin, Plus, Trophy, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { resizeImageToDataUrl } from "@/lib/image";
+import { LogoPicker } from "@/components/LogoPicker";
 import { MAX_VENUES, type CreateTournamentValues } from "./createTournamentSchema";
-
-const MAX_LOGO_BYTES = 5 * 1024 * 1024;
 
 export function DetailsStep() {
   const form = useFormContext<CreateTournamentValues>();
@@ -25,7 +23,16 @@ export function DetailsStep() {
       <Controller
         control={form.control}
         name="logo_url"
-        render={({ field }) => <LogoPicker value={field.value} onChange={field.onChange} />}
+        render={({ field }) => (
+          <LogoPicker
+            id="logo"
+            label="Logo (optional)"
+            alt="Tournament logo preview"
+            fallback={<Trophy className="size-8 text-muted-foreground" />}
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
       />
 
       <Field data-invalid={!!errors.name}>
@@ -90,82 +97,6 @@ export function DetailsStep() {
         )}
       />
     </FieldGroup>
-  );
-}
-
-function LogoPicker({
-  value,
-  onChange,
-}: {
-  value: string | null;
-  onChange: (value: string | null) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  async function handleFile(file: File | undefined) {
-    if (!file) return;
-    setError(null);
-    if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file (PNG, JPG, WEBP).");
-      return;
-    }
-    if (file.size > MAX_LOGO_BYTES) {
-      setError("Image is too large. Pick one under 5 MB.");
-      return;
-    }
-    setBusy(true);
-    try {
-      onChange(await resizeImageToDataUrl(file));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not use that image.");
-    } finally {
-      setBusy(false);
-      if (inputRef.current) inputRef.current.value = "";
-    }
-  }
-
-  return (
-    <Field data-invalid={!!error}>
-      <FieldLabel htmlFor="logo">Logo (optional)</FieldLabel>
-      <div className="flex items-center gap-4">
-        <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted">
-          {value ? (
-            <img src={value} alt="Tournament logo preview" className="size-full object-contain" />
-          ) : (
-            <Trophy className="size-8 text-muted-foreground" />
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={busy}
-            onClick={() => inputRef.current?.click()}
-          >
-            {busy ? <Loader2 className="animate-spin" /> : <ImagePlus />}
-            {value ? "Change logo" : "Upload logo"}
-          </Button>
-          {value && (
-            <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
-              <X /> Remove
-            </Button>
-          )}
-        </div>
-        <input
-          ref={inputRef}
-          id="logo"
-          type="file"
-          accept="image/*"
-          className="sr-only"
-          onChange={(e) => handleFile(e.target.files?.[0])}
-        />
-      </div>
-      <FieldDescription>Square images look best. Max 5 MB.</FieldDescription>
-      {error && <FieldError>{error}</FieldError>}
-    </Field>
   );
 }
 

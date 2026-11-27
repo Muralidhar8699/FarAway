@@ -9,6 +9,8 @@ export type PlayerRole = "batter" | "bowler" | "all_rounder" | "wicket_keeper";
 export type BattingStyle = "right" | "left";
 export type MatchStage =
   | "league"
+  | "round_of_32"
+  | "round_of_16"
   | "qualifier_1"
   | "eliminator"
   | "qualifier_2"
@@ -106,6 +108,12 @@ export interface Match {
   match_number: number;
   team_a_id: string | null;
   team_b_id: string | null;
+  /**
+   * Where a not-yet-known team comes from: "R:1" = 1st in the league table,
+   * "W:12" = winner of match 12, "L:12" = loser of match 12. Null for fixed teams.
+   */
+  team_a_from: string | null;
+  team_b_from: string | null;
   venue: string | null;
   scheduled_at: string | null;
   status: MatchStatus;

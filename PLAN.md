@@ -40,20 +40,20 @@ TourneyHub is for all sports. We build **cricket first**; other sports come late
 - [x] **2.7** Tournament dashboard page (overview, teams, fixtures, table, stats tabs), invite code and link, open registration; /join/:code landing page (sign-up form comes in 3.1)
 
 ## Phase 3: Team Registration (franchises)
-- [ ] **3.1** Team owner joins with the invite link and registers a team: name, short name (e.g. "CSK"), logo, colours, home ground
-- [ ] **3.2** Organizer approves or rejects teams
-- [ ] **3.3** Team page: details, squad, matches, results
+- [x] **3.1** Team owner joins with the invite link and registers a team: name, short name (e.g. "CSK"), logo, colours, home ground
+- [x] **3.2** Organizer approves or rejects teams
+- [x] **3.3** Team page: details, squad, matches, results
 
 ## Phase 4: Players & Squads
-- [ ] **4.1** Player profile: name, photo, jersey number, role (batter, bowler, all-rounder, wicketkeeper), batting and bowling style
-- [ ] **4.2** Add players to a team squad (within min/max squad size)
-- [ ] **4.3** Pick captain, vice-captain and wicketkeeper
-- [ ] **4.4** Squad lock when the registration deadline passes
+- [x] **4.1** Player profile: name, photo, jersey number, role (batter, bowler, all-rounder, wicketkeeper), batting and bowling style
+- [x] **4.2** Add players to a team squad (within min/max squad size)
+- [x] **4.3** Pick captain, vice-captain and wicketkeeper
+- [x] **4.4** Squad lock when the registration deadline passes
 
 ## Phase 5: Fixtures & Schedule
-- [ ] **5.1** Auto-generate league fixtures (round-robin)
-- [ ] **5.2** Set the date, time and venue for each match; edit or reschedule
-- [ ] **5.3** Schedule page (upcoming, live, completed)
+- [x] **5.1** Auto-generate fixtures: round-robin league (once or twice) with playoff placeholders, or a knockout bracket with byes; redo until the first match starts
+- [x] **5.2** Set the date, time and venue for each match (auto-schedule in 5.1); reschedule a single match with clash and out-of-dates warnings
+- [x] **5.3** Schedule page: All / Upcoming / Live / Results filters with counts, team filter, grouped by date (Today / Tomorrow), shareable filter links
 
 ## Phase 6: Match Day & Live Scoring
 - [ ] **6.1** Assign the scorer and pick both playing XIs

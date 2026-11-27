@@ -99,7 +99,8 @@ create table squad_members (
   is_captain boolean not null default false,
   is_vice_captain boolean not null default false,
   is_wicket_keeper boolean not null default false,
-  primary key (team_id, player_id)
+  primary key (team_id, player_id),
+  check (not (is_captain and is_vice_captain))
 );
 
 -- ---------- Matches & scoring ----------
@@ -107,10 +108,14 @@ create table matches (
   id uuid primary key default gen_random_uuid(),
   tournament_id uuid not null references tournaments(id) on delete cascade,
   stage text not null default 'league' check (stage in (
-    'league', 'qualifier_1', 'eliminator', 'qualifier_2', 'quarter_final', 'semi_final', 'final')),
+    'league', 'round_of_32', 'round_of_16', 'qualifier_1', 'eliminator', 'qualifier_2',
+    'quarter_final', 'semi_final', 'final')),
   match_number int not null,
   team_a_id uuid references teams(id),
   team_b_id uuid references teams(id),
+  -- Placeholder for a team not known yet: 'R:1' (league rank), 'W:12' / 'L:12' (winner/loser of match 12).
+  team_a_from text check (team_a_from ~ '^(R|W|L):[0-9]+$'),
+  team_b_from text check (team_b_from ~ '^(R|W|L):[0-9]+$'),
   venue text,
   scheduled_at timestamptz,
   status text not null default 'scheduled'
@@ -144,6 +149,11 @@ create table balls (
 );
 
 create index on teams (tournament_id);
+-- One captain, one vice-captain and one wicketkeeper per squad; unique shirt numbers.
+create unique index one_captain_per_team on squad_members (team_id) where is_captain;
+create unique index one_vice_captain_per_team on squad_members (team_id) where is_vice_captain;
+create unique index one_keeper_per_team on squad_members (team_id) where is_wicket_keeper;
+create unique index unique_jersey_per_team on squad_members (team_id, jersey_number) where jersey_number is not null;
 create index on matches (tournament_id);
 create index on balls (match_id, innings, over_number, ball_in_over);
 
@@ -195,8 +205,15 @@ create policy "creator becomes organizer" on tournament_members for insert
               and exists (select 1 from tournaments t where t.id = tournament_id and t.created_by = auth.uid()));
 
 create policy "owner registers team" on teams for insert
-  with check (owner_id = auth.uid() and status = 'pending');
--- TODO Phase 3: add a trigger so only the organizer can change teams.status.
+  with check (
+    owner_id = auth.uid() and status = 'pending'
+    and exists (
+      select 1 from tournaments t
+      where t.id = tournament_id and t.status = 'registration'
+        and (t.registration_deadline is null or t.registration_deadline > now())
+        and (select count(*) from teams x where x.tournament_id = t.id and x.status <> 'rejected') < t.max_teams
+    )
+  );
 create policy "owner or organizer edits team" on teams for update
   using (owner_id = auth.uid() or is_organizer(tournament_id));
 create policy "organizer deletes team" on teams for delete using (is_organizer(tournament_id));
@@ -204,9 +221,22 @@ create policy "organizer deletes team" on teams for delete using (is_organizer(t
 create policy "create players" on players for insert with check (created_by = auth.uid());
 create policy "creator edits player" on players for update using (created_by = auth.uid());
 
+-- Owners can change their squad until squads lock (deadline passed or tournament
+-- started); the organizer can always change it (e.g. injury replacements).
+create function squad_locked(t uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select status in ('ongoing', 'completed')
+         or (registration_deadline is not null and registration_deadline <= now())
+  from tournaments where id = t;
+$$;
+
 create policy "owner or organizer manages squad" on squad_members for all
-  using (exists (select 1 from teams t where t.id = team_id
-                 and (t.owner_id = auth.uid() or is_organizer(t.tournament_id))));
+  using (exists (select 1 from teams t where t.id = team_id and t.status <> 'rejected'
+                 and (is_organizer(t.tournament_id)
+                      or (t.owner_id = auth.uid() and not squad_locked(t.tournament_id)))))
+  with check (exists (select 1 from teams t where t.id = team_id and t.status <> 'rejected'
+                 and (is_organizer(t.tournament_id)
+                      or (t.owner_id = auth.uid() and not squad_locked(t.tournament_id)))));
 
 create policy "organizer manages matches" on matches for all
   using (is_organizer(tournament_id)) with check (is_organizer(tournament_id));
@@ -214,6 +244,27 @@ create policy "scorer updates match" on matches for update using (can_score(id))
 
 create policy "scorer records balls" on balls for all
   using (can_score(match_id)) with check (can_score(match_id));
+
+-- Only the organizer can approve/reject, and approved teams can't exceed max_teams.
+create function check_team_status_change() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.status is distinct from old.status then
+    if not is_organizer(new.tournament_id) then
+      raise exception 'Only the organizer can approve or reject teams';
+    end if;
+    if new.status = 'approved' and (
+      select count(*) from teams where tournament_id = new.tournament_id and status = 'approved' and id <> new.id
+    ) >= (select max_teams from tournaments where id = new.tournament_id) then
+      raise exception 'This tournament already has the maximum number of approved teams';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger team_status_guard before update on teams
+  for each row execute function check_team_status_change();
 
 -- ---------- Realtime (live scores) ----------
 alter publication supabase_realtime add table balls, matches;

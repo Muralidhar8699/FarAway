@@ -87,6 +87,7 @@ export function TournamentPage() {
   }
 
   const { tournament: t, teams, matches, squadCounts, isOrganizer } = data;
+  const pendingCount = teams.filter((x) => x.status === "pending").length;
 
   async function openRegistration() {
     setOpening(true);
@@ -158,7 +159,17 @@ export function TournamentPage() {
         <div className="-mx-4 overflow-x-auto px-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="teams">Teams ({teams.filter((x) => x.status === "approved").length})</TabsTrigger>
+            <TabsTrigger value="teams">
+              Teams ({teams.filter((x) => x.status === "approved").length})
+              {isOrganizer && pendingCount > 0 && (
+                <span
+                  className="ml-1 rounded-full bg-amber-500 px-1.5 text-[10px] font-semibold text-white"
+                  aria-label={`${pendingCount} waiting for approval`}
+                >
+                  {pendingCount}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="fixtures">Fixtures</TabsTrigger>
             <TabsTrigger value="table">Points Table</TabsTrigger>
             <TabsTrigger value="stats">Stats</TabsTrigger>
@@ -166,13 +177,18 @@ export function TournamentPage() {
         </div>
 
         <TabsContent value="overview" className="mt-4">
-          <OverviewTab tournament={t} teams={teams} isOrganizer={isOrganizer} />
+          <OverviewTab
+            tournament={t}
+            teams={teams}
+            isOrganizer={isOrganizer}
+            onReviewTeams={() => setSearchParams({ tab: "teams" }, { replace: true })}
+          />
         </TabsContent>
         <TabsContent value="teams" className="mt-4">
-          <TeamsTab tournament={t} teams={teams} squadCounts={squadCounts} />
+          <TeamsTab tournament={t} teams={teams} squadCounts={squadCounts} isOrganizer={isOrganizer} onChanged={reload} />
         </TabsContent>
         <TabsContent value="fixtures" className="mt-4">
-          <FixturesTab matches={matches} teams={teams} />
+          <FixturesTab tournament={t} matches={matches} teams={teams} isOrganizer={isOrganizer} onChanged={reload} />
         </TabsContent>
         <TabsContent value="table" className="mt-4">
           <ComingSoon

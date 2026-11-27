@@ -1,21 +1,34 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Trophy, Users } from "lucide-react";
+import { CalendarDays, CircleCheck, Lock, MapPin, Trophy } from "lucide-react";
 
+import { TeamBadge } from "@/components/TeamBadge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/data/api";
+import { TeamRegistrationForm } from "@/features/teams/TeamRegistrationForm";
 import { useAsync } from "@/hooks/useAsync";
-import { formatDateRange } from "@/lib/labels";
+import { formatDateRange, formatDateTime, MODE_LABELS } from "@/lib/labels";
+import { getRegistrationState } from "@/lib/registration";
+import type { Team } from "@/types/db";
 
-/** Landing page for invite links. Team sign-up itself is built in Phase 3.1. */
+async function loadInvite(code: string) {
+  const tournament = await api.getTournamentByInviteCode(code);
+  if (!tournament) return null;
+  const teams = await api.listTeams(tournament.id);
+  return { tournament, teams };
+}
+
 export function JoinTournamentPage() {
   const { code = "" } = useParams();
-  const { status, data: t } = useAsync(() => api.getTournamentByInviteCode(code), [code]);
+  const { status, data } = useAsync(() => loadInvite(code), [code]);
+  const [registered, setRegistered] = useState<Team | null>(null);
 
-  if (status === "loading") return <Skeleton className="mx-auto h-56 w-full max-w-md rounded-xl" />;
+  if (status === "loading") return <Skeleton className="mx-auto h-96 w-full max-w-lg rounded-xl" />;
 
-  if (!t) {
+  if (!data) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <Trophy className="size-10 text-muted-foreground" />
@@ -25,28 +38,87 @@ export function JoinTournamentPage() {
     );
   }
 
+  const { tournament: t, teams } = data;
+  const state = getRegistrationState(t, teams);
+
   return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardDescription>You're invited to join</CardDescription>
-        <CardTitle className="text-xl">
-          {t.name} {t.season}
-        </CardTitle>
-        <CardDescription>{formatDateRange(t.start_date, t.end_date)}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex gap-3 rounded-lg border bg-muted/40 p-4 text-sm">
-          <Users className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-          <p>
-            {t.status === "registration"
-              ? "Team sign-up is coming soon. You'll be able to register your team and squad from this page."
-              : "Registration for this tournament isn't open right now. Check with the organizer."}
-          </p>
-        </div>
-        <Button asChild variant="outline">
-          <Link to={`/tournaments/${t.id}`}>View tournament</Link>
-        </Button>
-      </CardContent>
-    </Card>
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-4">
+      <Card>
+        <CardHeader>
+          <CardDescription>You're invited to join</CardDescription>
+          <CardTitle className="text-xl">
+            {t.name} {t.season}
+          </CardTitle>
+          <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <CalendarDays className="size-4" /> {formatDateRange(t.start_date, t.end_date)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MapPin className="size-4" /> {t.venues.join(", ")}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Badge variant="outline">{MODE_LABELS[t.mode]}</Badge>
+            <Badge variant="outline">
+              {t.overs_per_innings} overs · {t.players_per_side} a side
+            </Badge>
+            <Badge variant="outline">
+              Squad {t.min_squad_size}–{t.max_squad_size}
+            </Badge>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {registered ? (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-4 py-8 text-center">
+            <CircleCheck className="size-12 text-green-600" />
+            <div>
+              <h1 className="text-xl font-bold">Team registered!</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                The organizer will review <strong>{registered.name}</strong>. You'll be able to add
+                your {t.min_squad_size}–{t.max_squad_size} players next.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <TeamBadge team={registered} />
+              <Badge variant="secondary">Waiting for approval</Badge>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button asChild>
+                <Link to={`/tournaments/${t.id}/teams/${registered.id}`}>View your team</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to={`/tournaments/${t.id}?tab=teams`}>View tournament</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : state.open ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Register your team</CardTitle>
+            <CardDescription>
+              {state.spotsLeft} of {t.max_teams} spots left
+              {t.registration_deadline && ` · closes ${formatDateTime(t.registration_deadline)}`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TeamRegistrationForm tournament={t} onRegistered={setRegistered} />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-8 text-center">
+            <Lock className="size-10 text-muted-foreground" />
+            <p className="font-medium">Registration isn't open</p>
+            <p className="text-sm text-muted-foreground">{state.message}</p>
+            <Button asChild variant="outline">
+              <Link to={`/tournaments/${t.id}`}>View tournament</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

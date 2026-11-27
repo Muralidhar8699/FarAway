@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Copy, Link2 } from "lucide-react";
+import { Check, Copy, Link2, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,10 +11,12 @@ export function OverviewTab({
   tournament: t,
   teams,
   isOrganizer,
+  onReviewTeams,
 }: {
   tournament: Tournament;
   teams: Team[];
   isOrganizer: boolean;
+  onReviewTeams: () => void;
 }) {
   const approved = teams.filter((x) => x.status === "approved").length;
   const pending = teams.filter((x) => x.status === "pending").length;
@@ -22,6 +24,20 @@ export function OverviewTab({
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
+      {isOrganizer && pending > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm lg:col-span-2">
+          <UserCheck className="size-5 shrink-0 text-amber-600" />
+          <span className="flex-1">
+            <strong>
+              {pending} team{pending > 1 ? "s" : ""}
+            </strong>{" "}
+            waiting for your approval.
+          </span>
+          <Button size="sm" variant="outline" onClick={onReviewTeams}>
+            Review teams
+          </Button>
+        </div>
+      )}
       {isOrganizer && (t.status === "draft" || t.status === "registration") && (
         <InviteCard tournament={t} className="lg:col-span-2" />
       )}
@@ -43,7 +59,10 @@ export function OverviewTab({
               ["Approved teams", `${approved} of ${t.max_teams}`],
               ["Waiting for approval", String(pending)],
               ["Squad size", `${t.min_squad_size}–${t.max_squad_size} players`],
-              ["Registration closes", t.registration_deadline ? formatDateTime(t.registration_deadline) : "When the organizer closes it"],
+              [
+                "Registration closes & squads lock",
+                t.registration_deadline ? formatDateTime(t.registration_deadline) : "When the tournament starts",
+              ],
             ]}
           />
         </CardContent>
