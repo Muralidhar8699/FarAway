@@ -1,44 +1,16 @@
-import { useState } from "react";
-import "./App.css";
-import Form from "./components/Form";
-import PackingList from "./components/PackingList";
-import Stats from "./components/Stats";
-import Logo from "./components/logo";
+import { Trophy } from "lucide-react";
 
-function App() {
-  const [items, setItems] = useState([]);
-  // const handleAddItems = (item) => {
-  // setItems((items) => [...items, item]);
-  // };
-
-  const handleDelete = (id) => {
-    setItems((items) => items.filter((item) => item.id !== id));
-  };
-  const handleToggle = (id) => {
-    setItems((items) =>
-      items.map((item) =>
-        item.id === id ? { ...item, packed: !item.packed } : item
-      )
-    );
-  };
-  const handleClear = () => {
-    const confirmed = window.confirm('Are you shure you want to delete this List')
-    if(confirmed)setItems([])
-  };
+export default function App() {
   return (
-    <div className="App">
-      <Logo />
-      <Form setItems={setItems} />{" "}
-      {/* handleAddItems ={handleAddItems} optional method */}
-      <PackingList
-        items={items}
-        handleDelete={handleDelete}
-        handleToggle={handleToggle}
-        handleClear={handleClear}
-      />
-      <Stats items={items} />
-    </div>
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-4 p-4 text-center">
+      <Trophy className="size-12" />
+      <h1 className="text-3xl font-bold">Cricket Tournament</h1>
+      <p className="text-muted-foreground">
+        Gully &amp; professional tournaments: knockouts, semis, finals and live scoring.
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Setup ready: React 19 + Vite + Tailwind v4 + shadcn/ui + Supabase.
+      </p>
+    </main>
   );
 }
-
-export default App;
