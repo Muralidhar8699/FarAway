@@ -2,7 +2,9 @@
 
 Tournament manager for gully and professional cricket: knockouts (quarter-finals, semi-finals, final), league rounds and live ball-by-ball scoring.
 
-**Stack:** React 19 · Vite · Tailwind CSS v4 · shadcn/ui · Supabase
+**Stack:** React 19 · TypeScript · Vite · Tailwind CSS v4 · shadcn/ui · Supabase
+
+The build plan and progress are in [PLAN.md](PLAN.md).
 
 ## Setup
 
@@ -20,8 +22,8 @@ npm run dev
 
 ## Adding shadcn/ui components
 
-```bash
-npx shadcn@latest add button card input select dialog tabs table badge
-```
+Components live in `src/components/ui/` (button, card, input, label, badge, separator, sheet, skeleton are already added). Add more with:
 
-Components land in `src/components/ui/`.
+```bash
+npx shadcn@latest add select dialog tabs table
+```
