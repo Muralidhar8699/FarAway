@@ -84,9 +84,14 @@ export function JoinTournamentPage() {
               <TeamBadge team={registered} />
               <Badge variant="secondary">Waiting for approval</Badge>
             </div>
-            <Button asChild variant="outline">
-              <Link to={`/tournaments/${t.id}?tab=teams`}>View tournament</Link>
-            </Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button asChild>
+                <Link to={`/tournaments/${t.id}/teams/${registered.id}`}>View your team</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to={`/tournaments/${t.id}?tab=teams`}>View tournament</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : state.open ? (

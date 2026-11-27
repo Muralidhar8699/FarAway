@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { Check, Loader2, Users, X } from "lucide-react";
 
 import { TeamBadge } from "@/components/TeamBadge";
@@ -125,7 +126,12 @@ function TeamCard({ team, players, actions }: { team: Team; players: number; act
         <div className="flex items-center gap-3">
           <TeamBadge team={team} />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">{team.name}</p>
+            <Link
+              to={`/tournaments/${team.tournament_id}/teams/${team.id}`}
+              className="block truncate font-medium hover:underline"
+            >
+              {team.name}
+            </Link>
             <p className="truncate text-sm text-muted-foreground">
               {players} player{players === 1 ? "" : "s"}
               {team.home_ground ? ` · ${team.home_ground}` : ""}

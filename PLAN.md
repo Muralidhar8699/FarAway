@@ -42,7 +42,7 @@ TourneyHub is for all sports. We build **cricket first**; other sports come late
 ## Phase 3: Team Registration (franchises)
 - [x] **3.1** Team owner joins with the invite link and registers a team: name, short name (e.g. "CSK"), logo, colours, home ground
 - [x] **3.2** Organizer approves or rejects teams
-- [ ] **3.3** Team page: details, squad, matches, results
+- [x] **3.3** Team page: details, squad, matches, results
 
 ## Phase 4: Players & Squads
 - [ ] **4.1** Player profile: name, photo, jersey number, role (batter, bowler, all-rounder, wicketkeeper), batting and bowling style

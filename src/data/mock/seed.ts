@@ -114,7 +114,7 @@ function buildTeams(tournamentId: string, seeds: TeamSeed[], squadSize: number) 
       squad.push({
         team_id: teamId,
         player_id: playerId,
-        jersey_number: slot === 0 ? 7 : slot * 3 + ti + 1,
+        jersey_number: slot * 3 + ti + 1, // unique within a team
         is_captain: slot === 1,
         is_vice_captain: slot === 6,
         is_wicket_keeper: slot === 0,
