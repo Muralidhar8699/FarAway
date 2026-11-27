@@ -31,7 +31,7 @@ Cricket only for now. Other sports come later.
 - [ ] **1.4** Protected pages (only logged-in users can create; anyone can watch)
 
 ## Phase 2: Tournament Creation (organizer)
-- [ ] **2.1** Basic details: name, season/year, logo, start and end dates, venues
+- [x] **2.1** Basic details: name, season/year, logo, start and end dates, venues
 - [ ] **2.2** Match rules: overs per innings, players per side, powerplay overs, wides/no-balls rules, super over on a tie
 - [ ] **2.3** Mode preset: **Gully** (short overs, flexible rules) or **Professional** (full T20 rules)
 - [ ] **2.4** Format: league (single or double round-robin) + playoffs (IPL style: Qualifier 1, Eliminator, Qualifier 2, Final) or simple semi-finals and final
