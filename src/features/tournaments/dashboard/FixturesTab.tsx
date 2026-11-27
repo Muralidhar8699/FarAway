@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { CalendarDays, RefreshCw, Shuffle } from "lucide-react";
+import { CalendarClock, CalendarDays, RefreshCw, Shuffle } from "lucide-react";
 
 import { MatchCard } from "@/components/MatchCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { GenerateFixturesDialog } from "@/features/fixtures/GenerateFixturesDialog";
+import { RescheduleDialog } from "@/features/fixtures/RescheduleDialog";
 import { describeSource, stageMatchName } from "@/lib/fixtures";
 import { minTeamsFor } from "@/lib/format";
 import type { Match, Team, Tournament } from "@/types/db";
@@ -24,6 +25,7 @@ export function FixturesTab({
   onChanged: () => void;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [rescheduling, setRescheduling] = useState<Match | null>(null);
   const approved = teams.filter((x) => x.status === "approved");
   const pendingCount = teams.filter((x) => x.status === "pending").length;
   const minTeams = minTeamsFor(t.format);
@@ -84,6 +86,13 @@ export function FixturesTab({
       sourceA={m.team_a_from ? describeSource(m.team_a_from, matches) : undefined}
       sourceB={m.team_b_from ? describeSource(m.team_b_from, matches) : undefined}
       stageName={stageMatchName(m, matches)}
+      action={
+        isOrganizer && m.status === "scheduled" ? (
+          <Button variant="outline" size="sm" className="self-start" onClick={() => setRescheduling(m)}>
+            <CalendarClock /> Reschedule
+          </Button>
+        ) : undefined
+      }
     />
   );
   const groups: { title: string; list: Match[] }[] = [
@@ -111,6 +120,15 @@ export function FixturesTab({
           </section>
         ))}
       {dialog}
+      <RescheduleDialog
+        tournament={t}
+        match={rescheduling}
+        matches={matches}
+        teams={teams}
+        title={rescheduling ? `Match ${rescheduling.match_number}` : ""}
+        onOpenChange={(open) => !open && setRescheduling(null)}
+        onDone={onChanged}
+      />
     </div>
   );
 }
