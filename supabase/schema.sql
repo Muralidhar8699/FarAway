@@ -26,6 +26,11 @@ create table tournaments (
   overs_per_innings int not null default 20 check (overs_per_innings between 1 and 50),
   players_per_side int not null default 11 check (players_per_side between 2 and 11),
   powerplay_overs int not null default 6,
+  max_overs_per_bowler int not null default 4,
+  wide_runs int not null default 1 check (wide_runs between 0 and 5),
+  no_ball_runs int not null default 1 check (no_ball_runs between 0 and 5),
+  free_hit_on_no_ball boolean not null default true,
+  last_man_stands boolean not null default false,
   super_over_on_tie boolean not null default true,
   points_win int not null default 2,
   points_tie int not null default 1,
@@ -39,7 +44,10 @@ create table tournaments (
     check (status in ('draft', 'registration', 'ongoing', 'completed')),
   created_by uuid not null references auth.users(id) default auth.uid(),
   created_at timestamptz not null default now(),
-  check (end_date >= start_date)
+  check (end_date >= start_date),
+  check (powerplay_overs between 0 and overs_per_innings),
+  check (max_overs_per_bowler between 1 and overs_per_innings),
+  check (max_overs_per_bowler * players_per_side >= overs_per_innings)
 );
 
 create table tournament_members (

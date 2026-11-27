@@ -38,6 +38,11 @@ export interface Tournament {
   overs_per_innings: number;
   players_per_side: number;
   powerplay_overs: number;
+  max_overs_per_bowler: number;
+  wide_runs: number; // runs given for a wide (ball is re-bowled)
+  no_ball_runs: number; // runs given for a no-ball (ball is re-bowled)
+  free_hit_on_no_ball: boolean;
+  last_man_stands: boolean; // last batter can bat alone (gully rule)
   super_over_on_tie: boolean;
   points_win: number;
   points_tie: number;

@@ -5,7 +5,7 @@ import type { DataApi } from "@/data/api";
 import type { Tournament } from "@/types/db";
 import { createSeedData, DEMO_USER_ID, type MockDb } from "./seed";
 
-const STORAGE_KEY = "crictourney-mock-db-v2";
+const STORAGE_KEY = "crictourney-mock-db-v3";
 
 function load(): MockDb {
   try {
