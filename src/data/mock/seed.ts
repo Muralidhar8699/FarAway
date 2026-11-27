@@ -147,6 +147,7 @@ function baseTournament(t: Partial<Tournament> & Pick<Tournament, "id" | "name">
     points_win: 2,
     points_tie: 1,
     points_no_result: 1,
+    tie_breakers: ["wins", "nrr", "head_to_head"],
     max_teams: 8,
     min_squad_size: 11,
     max_squad_size: 15,

@@ -16,6 +16,8 @@ export type MatchStage =
   | "semi_final"
   | "final";
 export type MatchStatus = "scheduled" | "live" | "completed" | "abandoned";
+/** How teams level on points are separated, in the organizer's chosen order. */
+export type TieBreaker = "wins" | "nrr" | "head_to_head";
 export type ExtraType = "wide" | "no_ball" | "bye" | "leg_bye";
 
 export interface Profile {
@@ -48,6 +50,7 @@ export interface Tournament {
   points_win: number;
   points_tie: number;
   points_no_result: number;
+  tie_breakers: TieBreaker[];
   max_teams: number;
   min_squad_size: number;
   max_squad_size: number;

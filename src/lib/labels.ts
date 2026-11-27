@@ -1,4 +1,13 @@
-import type { TournamentFormat, TournamentMode, TournamentStatus } from "@/types/db";
+import type { TieBreaker, TournamentFormat, TournamentMode, TournamentStatus } from "@/types/db";
+
+export const TIE_BREAKER_LABELS: Record<TieBreaker, { title: string; description: string }> = {
+  wins: { title: "Most wins", description: "The team with more wins goes higher." },
+  nrr: {
+    title: "Net run rate (NRR)",
+    description: "Runs per over scored minus runs per over conceded, across all matches.",
+  },
+  head_to_head: { title: "Head-to-head", description: "The winner of the match between the two teams." },
+};
 
 export const FORMAT_LABELS: Record<TournamentFormat, string> = {
   league_playoffs: "League + Playoffs (IPL style)",

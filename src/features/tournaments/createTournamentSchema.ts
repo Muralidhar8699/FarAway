@@ -55,6 +55,13 @@ export const createTournamentSchema = z
     format: z.enum(["league_playoffs", "league_semis", "knockout"]),
     league_rounds: z.union([z.literal(1), z.literal(2)]),
     max_teams: wholeNumber("number of teams", MIN_TEAMS, MAX_TEAMS),
+    points_win: wholeNumber("points for a win", 1, 10),
+    points_tie: wholeNumber("points for a tie", 0, 10),
+    points_no_result: wholeNumber("points for no result", 0, 10),
+    tie_breakers: z
+      .array(z.enum(["wins", "nrr", "head_to_head"]))
+      .length(3)
+      .refine((list) => new Set(list).size === list.length, "Each tie-breaker can be used once"),
   })
   // Each cross-field check runs as soon as the fields it depends on are valid,
   // even if other fields (e.g. on another step) still have errors.
@@ -67,6 +74,16 @@ export const createTournamentSchema = z
     path: ["max_teams"],
     message: `League formats need at least ${LEAGUE_MIN_TEAMS} teams (the top 4 reach the playoffs)`,
     when: onlyNeeds("max_teams", "format"),
+  })
+  .refine((v) => v.points_tie <= v.points_win, {
+    path: ["points_tie"],
+    message: "A tie can't be worth more than a win",
+    when: onlyNeeds("points_tie", "points_win"),
+  })
+  .refine((v) => v.points_no_result <= v.points_win, {
+    path: ["points_no_result"],
+    message: "No result can't be worth more than a win",
+    when: onlyNeeds("points_no_result", "points_win"),
   })
   .refine((v) => v.powerplay_overs <= v.overs_per_innings, {
     path: ["powerplay_overs"],
@@ -107,5 +124,13 @@ export const STEP_FIELDS = {
     "last_man_stands",
     "super_over_on_tie",
   ],
-  format: ["format", "league_rounds", "max_teams"],
+  format: [
+    "format",
+    "league_rounds",
+    "max_teams",
+    "points_win",
+    "points_tie",
+    "points_no_result",
+    "tie_breakers",
+  ],
 } as const satisfies Record<string, readonly (keyof CreateTournamentValues)[]>;

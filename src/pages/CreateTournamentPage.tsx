@@ -44,7 +44,7 @@ const STEPS = [
     key: "format",
     title: "Format",
     cardTitle: "Tournament format",
-    description: "League, playoffs or knockout, and how many teams can join.",
+    description: "League, playoffs or knockout, how many teams can join, and how the points table works.",
     Component: FormatStep,
   },
 ] as const;
@@ -68,6 +68,10 @@ export function CreateTournamentPage() {
       format: DEFAULT_TOURNAMENT_RULES.format,
       league_rounds: DEFAULT_TOURNAMENT_RULES.league_rounds,
       max_teams: DEFAULT_TOURNAMENT_RULES.max_teams,
+      points_win: DEFAULT_TOURNAMENT_RULES.points_win,
+      points_tie: DEFAULT_TOURNAMENT_RULES.points_tie,
+      points_no_result: DEFAULT_TOURNAMENT_RULES.points_no_result,
+      tie_breakers: DEFAULT_TOURNAMENT_RULES.tie_breakers,
     },
   });
   const { isSubmitting } = form.formState;

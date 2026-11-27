@@ -36,6 +36,8 @@ create table tournaments (
   points_win int not null default 2,
   points_tie int not null default 1,
   points_no_result int not null default 1,
+  tie_breakers text[] not null default '{wins,nrr,head_to_head}'
+    check (tie_breakers <@ array['wins', 'nrr', 'head_to_head']),
   max_teams int not null default 8,
   min_squad_size int not null default 11,
   max_squad_size int not null default 15,
@@ -47,6 +49,8 @@ create table tournaments (
   created_at timestamptz not null default now(),
   check (end_date >= start_date),
   check (max_teams between 2 and 32),
+  check (points_win >= 1 and points_tie between 0 and points_win
+         and points_no_result between 0 and points_win),
   check (format = 'knockout' or max_teams >= 4),
   check (powerplay_overs between 0 and overs_per_innings),
   check (max_overs_per_bowler between 1 and overs_per_innings),
