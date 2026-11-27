@@ -13,7 +13,8 @@ export type NewTournament = Omit<
 export interface DataApi {
   listTournaments(): Promise<Tournament[]>;
   getTournament(id: string): Promise<Tournament | null>;
-  createTournament(input: NewTournament): Promise<Tournament>;
+  /** Saves as a draft, or opens team registration straight away. */
+  createTournament(input: NewTournament, options?: { openRegistration?: boolean }): Promise<Tournament>;
   updateTournament(id: string, changes: Partial<Tournament>): Promise<Tournament>;
 
   listTeams(tournamentId: string): Promise<Team[]>;

@@ -16,14 +16,21 @@ import {
 import { api } from "@/data/api";
 import {
   createTournamentSchema,
+  MAX_SQUAD_SIZE,
   STEP_FIELDS,
   type CreateTournamentValues,
 } from "@/features/tournaments/createTournamentSchema";
 import { DetailsStep } from "@/features/tournaments/DetailsStep";
 import { FormatStep } from "@/features/tournaments/FormatStep";
+import { RegistrationStep } from "@/features/tournaments/RegistrationStep";
 import { RulesStep } from "@/features/tournaments/RulesStep";
 import { StepIndicator } from "@/features/tournaments/StepIndicator";
 import { DEFAULT_MODE, DEFAULT_TOURNAMENT_RULES, RULE_PRESETS } from "@/lib/tournamentDefaults";
+
+/** Squad of exactly the playing side up to 4 extra players. */
+function squadSizesFor(playersPerSide: number) {
+  return { min_squad_size: playersPerSide, max_squad_size: Math.min(playersPerSide + 4, MAX_SQUAD_SIZE) };
+}
 
 const STEPS = [
   {
@@ -46,6 +53,13 @@ const STEPS = [
     cardTitle: "Tournament format",
     description: "League, playoffs or knockout, how many teams can join, and how the points table works.",
     Component: FormatStep,
+  },
+  {
+    key: "registration",
+    title: "Registration",
+    cardTitle: "Team registration",
+    description: "Squad sizes and when teams can join.",
+    Component: RegistrationStep,
   },
 ] as const;
 
@@ -72,6 +86,9 @@ export function CreateTournamentPage() {
       points_tie: DEFAULT_TOURNAMENT_RULES.points_tie,
       points_no_result: DEFAULT_TOURNAMENT_RULES.points_no_result,
       tie_breakers: DEFAULT_TOURNAMENT_RULES.tie_breakers,
+      ...squadSizesFor(RULE_PRESETS[DEFAULT_MODE].players_per_side),
+      open_registration: true,
+      registration_deadline: "",
     },
   });
   const { isSubmitting } = form.formState;
@@ -86,19 +103,31 @@ export function CreateTournamentPage() {
 
   async function goNext() {
     const ok = await form.trigger([...STEP_FIELDS[current.key]], { shouldFocus: true });
-    if (ok) goTo(step + 1);
+    if (!ok) return;
+    // Keep squad sizes in step with players per side until the organizer sets them by hand.
+    if (current.key === "rules") {
+      const { dirtyFields } = form.formState;
+      if (!dirtyFields.min_squad_size && !dirtyFields.max_squad_size) {
+        const sizes = squadSizesFor(form.getValues("players_per_side"));
+        form.setValue("min_squad_size", sizes.min_squad_size);
+        form.setValue("max_squad_size", sizes.max_squad_size);
+      }
+    }
+    goTo(step + 1);
   }
 
   async function onValid(values: CreateTournamentValues) {
     setSubmitError(null);
     try {
-      const tournament = await api.createTournament({
-        ...DEFAULT_TOURNAMENT_RULES,
-        ...values,
-        // Until squad sizes get their own fields (Phase 2.6), base them on players per side.
-        min_squad_size: values.players_per_side,
-        max_squad_size: values.players_per_side + 4,
-      });
+      const { open_registration, registration_deadline, ...rest } = values;
+      const tournament = await api.createTournament(
+        {
+          ...DEFAULT_TOURNAMENT_RULES,
+          ...rest,
+          registration_deadline: registration_deadline ? new Date(registration_deadline).toISOString() : null,
+        },
+        { openRegistration: open_registration }
+      );
       navigate("/tournaments", { state: { createdName: tournament.name } });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

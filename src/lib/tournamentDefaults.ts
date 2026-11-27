@@ -69,7 +69,6 @@ export const DEFAULT_TOURNAMENT_RULES: Omit<
   points_tie: 1,
   points_no_result: 1,
   tie_breakers: ["wins", "nrr", "head_to_head"],
-  // Set in a later step (Phase 2.6).
   min_squad_size: 11,
   max_squad_size: 15,
   registration_deadline: null,

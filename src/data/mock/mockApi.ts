@@ -50,14 +50,14 @@ export const mockApi: DataApi = {
     return delay(db.tournaments.find((t) => t.id === id) ?? null);
   },
 
-  async createTournament(input) {
+  async createTournament(input, options) {
     const tournament: Tournament = {
       ...input,
       id: makeId("tour"),
       invite_code: makeInviteCode(),
       created_by: DEMO_USER_ID,
       created_at: new Date().toISOString(),
-      status: "draft",
+      status: options?.openRegistration ? "registration" : "draft",
     };
     db.tournaments.push(tournament);
     db.tournament_members.push({

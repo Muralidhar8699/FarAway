@@ -36,7 +36,7 @@ Cricket only for now. Other sports come later.
 - [x] **2.3** Mode preset: **Gully** (short overs, flexible rules) or **Professional** (full T20 rules)
 - [x] **2.4** Format: league (single or double round-robin) + playoffs (IPL style: Qualifier 1, Eliminator, Qualifier 2, Final), league + semi-finals and final, or knockout; number of teams; live match-count plan
 - [x] **2.5** Points rules: win / tie / no result points, tie-breakers (NRR, head-to-head)
-- [ ] **2.6** Team registration settings: max teams, min/max squad size, invite link or code, deadline
+- [x] **2.6** Team registration settings: min/max squad size, open registration now or keep as draft, deadline (max teams is set in 2.4; the invite code is created on save)
 - [ ] **2.7** Tournament dashboard page (overview, teams, fixtures, table, stats tabs)
 
 ## Phase 3: Team Registration (franchises)

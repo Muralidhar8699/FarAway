@@ -49,6 +49,7 @@ create table tournaments (
   created_at timestamptz not null default now(),
   check (end_date >= start_date),
   check (max_teams between 2 and 32),
+  check (min_squad_size >= players_per_side and max_squad_size between min_squad_size and 30),
   check (points_win >= 1 and points_tie between 0 and points_win
          and points_no_result between 0 and points_win),
   check (format = 'knockout' or max_teams >= 4),

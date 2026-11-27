@@ -3,6 +3,7 @@ import { z } from "zod";
 import { LEAGUE_MIN_TEAMS, MAX_TEAMS, MIN_TEAMS, minTeamsFor } from "@/lib/format";
 
 export const MAX_VENUES = 10;
+export const MAX_SQUAD_SIZE = 30;
 
 const wholeNumber = (label: string, min: number, max: number) =>
   z
@@ -62,6 +63,15 @@ export const createTournamentSchema = z
       .array(z.enum(["wins", "nrr", "head_to_head"]))
       .length(3)
       .refine((list) => new Set(list).size === list.length, "Each tie-breaker can be used once"),
+
+    // Step 4: registration
+    min_squad_size: wholeNumber("minimum squad size", 2, MAX_SQUAD_SIZE),
+    max_squad_size: wholeNumber("maximum squad size", 2, MAX_SQUAD_SIZE),
+    open_registration: z.boolean(),
+    /** Local date-time from the picker ("YYYY-MM-DDTHH:mm"), or "" for no deadline. */
+    registration_deadline: z
+      .string()
+      .refine((v) => !v || new Date(v).getTime() > Date.now(), "The deadline must be in the future"),
   })
   // Each cross-field check runs as soon as the fields it depends on are valid,
   // even if other fields (e.g. on another step) still have errors.
@@ -84,6 +94,21 @@ export const createTournamentSchema = z
     path: ["points_no_result"],
     message: "No result can't be worth more than a win",
     when: onlyNeeds("points_no_result", "points_win"),
+  })
+  .refine((v) => v.min_squad_size >= v.players_per_side, {
+    path: ["min_squad_size"],
+    message: "Must be at least the number of players per side",
+    when: onlyNeeds("min_squad_size", "players_per_side"),
+  })
+  .refine((v) => v.max_squad_size >= v.min_squad_size, {
+    path: ["max_squad_size"],
+    message: "Can't be smaller than the minimum squad size",
+    when: onlyNeeds("max_squad_size", "min_squad_size"),
+  })
+  .refine((v) => !v.registration_deadline || v.registration_deadline.slice(0, 10) <= v.start_date, {
+    path: ["registration_deadline"],
+    message: "Registration must close on or before the tournament's start date",
+    when: onlyNeeds("registration_deadline", "start_date"),
   })
   .refine((v) => v.powerplay_overs <= v.overs_per_innings, {
     path: ["powerplay_overs"],
@@ -133,4 +158,5 @@ export const STEP_FIELDS = {
     "points_no_result",
     "tie_breakers",
   ],
+  registration: ["min_squad_size", "max_squad_size", "open_registration", "registration_deadline"],
 } as const satisfies Record<string, readonly (keyof CreateTournamentValues)[]>;
