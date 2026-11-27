@@ -99,7 +99,8 @@ create table squad_members (
   is_captain boolean not null default false,
   is_vice_captain boolean not null default false,
   is_wicket_keeper boolean not null default false,
-  primary key (team_id, player_id)
+  primary key (team_id, player_id),
+  check (not (is_captain and is_vice_captain))
 );
 
 -- ---------- Matches & scoring ----------
@@ -144,6 +145,11 @@ create table balls (
 );
 
 create index on teams (tournament_id);
+-- One captain, one vice-captain and one wicketkeeper per squad; unique shirt numbers.
+create unique index one_captain_per_team on squad_members (team_id) where is_captain;
+create unique index one_vice_captain_per_team on squad_members (team_id) where is_vice_captain;
+create unique index one_keeper_per_team on squad_members (team_id) where is_wicket_keeper;
+create unique index unique_jersey_per_team on squad_members (team_id, jersey_number) where jersey_number is not null;
 create index on matches (tournament_id);
 create index on balls (match_id, innings, over_number, ball_in_over);
 

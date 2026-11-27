@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Crown, Hand, MoreHorizontal, Pencil, Star, Trash2, TriangleAlert } from "lucide-react";
 
 import {
   AlertDialog,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { api, ApiError } from "@/data/api";
 import { PLAYER_ROLE_LABELS } from "@/lib/labels";
+import type { SquadRole } from "@/lib/squad";
 import type { PlayerRole, SquadPlayer } from "@/types/db";
 
 const ROLE_ORDER: PlayerRole[] = ["batter", "wicket_keeper", "all_rounder", "bowler"];
@@ -65,6 +66,8 @@ export function SquadList({
           {error}
         </p>
       )}
+
+      <RolesSummary squad={squad} canEdit={canEdit} />
 
       {ROLE_ORDER.map((role) => {
         const players = squad
@@ -115,6 +118,16 @@ export function SquadList({
                           <Pencil /> Edit details
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        {ROLE_ACTIONS.map(({ role, label, icon: Icon, field }) => (
+                          <DropdownMenuItem
+                            key={role}
+                            disabled={s[field]}
+                            onSelect={() => run(() => api.setSquadRole(teamId, s.player_id, role))}
+                          >
+                            <Icon /> {s[field] ? `${label} already` : `Make ${label.toLowerCase()}`}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem variant="destructive" onSelect={() => setRemoving(s)}>
                           <Trash2 /> Remove from squad
                         </DropdownMenuItem>
@@ -147,6 +160,47 @@ export function SquadList({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+const ROLE_ACTIONS: {
+  role: SquadRole;
+  label: string;
+  icon: typeof Crown;
+  field: "is_captain" | "is_vice_captain" | "is_wicket_keeper";
+}[] = [
+  { role: "captain", label: "Captain", icon: Crown, field: "is_captain" },
+  { role: "vice_captain", label: "Vice-captain", icon: Star, field: "is_vice_captain" },
+  { role: "wicket_keeper", label: "Wicketkeeper", icon: Hand, field: "is_wicket_keeper" },
+];
+
+/** Who holds each squad role, with a warning for any that aren't picked yet. */
+function RolesSummary({ squad, canEdit }: { squad: SquadPlayer[]; canEdit: boolean }) {
+  const missing = ROLE_ACTIONS.filter((r) => !squad.some((s) => s[r.field]));
+  return (
+    <div className="flex flex-col gap-2">
+      <dl className="grid grid-cols-3 gap-2 text-center text-sm">
+        {ROLE_ACTIONS.map(({ label, field, icon: Icon }) => {
+          const holder = squad.find((s) => s[field]);
+          return (
+            <div key={field} className="min-w-0 rounded-lg border p-2">
+              <dt className="flex flex-col items-center gap-0.5 text-xs text-muted-foreground">
+                <Icon className="size-4 shrink-0" /> {label}
+              </dt>
+              <dd className={holder ? "truncate font-medium" : "text-muted-foreground"} title={holder?.player.full_name}>
+                {holder ? holder.player.full_name : "Not picked"}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+      {canEdit && missing.length > 0 && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <TriangleAlert className="size-4 shrink-0 text-amber-600" />
+          Pick a {missing.map((m) => m.label.toLowerCase()).join(", ")} from the player menu (⋯).
+        </p>
+      )}
     </div>
   );
 }
