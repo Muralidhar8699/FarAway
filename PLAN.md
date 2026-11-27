@@ -21,7 +21,8 @@ Cricket only for now. Other sports come later.
 - [x] **0.1** Project setup: React 19, Vite, Tailwind CSS v4, shadcn/ui config
 - [x] **0.2** Supabase client (`src/lib/supabase.ts`) and `.env.example`
 - [x] **0.3** TypeScript, base shadcn components, app layout (header and mobile menu) and page routing
-- [ ] **0.4** Create the Supabase project, add keys to `.env`, run the database schema
+- [x] **0.4** Data layer with dummy data: table types (`src/types/db.ts`), data functions (`src/data/api.ts`), dummy tournaments/teams/players (`src/data/mock`), matching `supabase/schema.sql`
+- [ ] **0.5** *(later)* Connect real Supabase: create the project, add keys to `.env`, run `supabase/schema.sql`, add `src/data/supabaseApi.ts` and switch `api` to it
 
 ## Phase 1: Accounts & Roles
 - [ ] **1.1** Sign up / log in (email OTP and Google) with Supabase Auth
