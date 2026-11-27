@@ -53,7 +53,7 @@ TourneyHub is for all sports. We build **cricket first**; other sports come late
 ## Phase 5: Fixtures & Schedule
 - [x] **5.1** Auto-generate fixtures: round-robin league (once or twice) with playoff placeholders, or a knockout bracket with byes; redo until the first match starts
 - [x] **5.2** Set the date, time and venue for each match (auto-schedule in 5.1); reschedule a single match with clash and out-of-dates warnings
-- [ ] **5.3** Schedule page (upcoming, live, completed)
+- [x] **5.3** Schedule page: All / Upcoming / Live / Results filters with counts, team filter, grouped by date (Today / Tomorrow), shareable filter links
 
 ## Phase 6: Match Day & Live Scoring
 - [ ] **6.1** Assign the scorer and pick both playing XIs

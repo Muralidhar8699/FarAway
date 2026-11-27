@@ -16,6 +16,7 @@ export function MatchCard({
   sourceB,
   action,
   stageName,
+  timeOnly,
 }: {
   match: Match;
   teamA?: Team;
@@ -27,6 +28,8 @@ export function MatchCard({
   action?: ReactNode;
   /** Name within the stage, e.g. "Semi-final 2". Defaults to the stage name. */
   stageName?: string;
+  /** Show only the start time (when the card sits under a date heading). */
+  timeOnly?: boolean;
 }) {
   return (
     <Card className="py-4">
@@ -39,7 +42,13 @@ export function MatchCard({
           {m.status === "live" ? (
             <Badge className="bg-red-600 text-white">● {MATCH_STATUS_LABELS.live}</Badge>
           ) : (
-            <span>{m.scheduled_at ? formatDateTime(m.scheduled_at) : "Date to be set"}</span>
+            <span>
+              {m.scheduled_at
+                ? timeOnly
+                  ? new Date(m.scheduled_at).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })
+                  : formatDateTime(m.scheduled_at)
+                : "Date to be set"}
+            </span>
           )}
         </div>
         <div className="flex flex-col gap-2">
