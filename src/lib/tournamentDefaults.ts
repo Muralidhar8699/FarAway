@@ -62,12 +62,13 @@ export const DEFAULT_TOURNAMENT_RULES: Omit<
 > = {
   mode: DEFAULT_MODE,
   ...RULE_PRESETS[DEFAULT_MODE],
-  // Set in later steps (Phase 2.4–2.6).
   format: "league_playoffs",
+  league_rounds: 1,
+  max_teams: 8,
+  // Set in later steps (Phase 2.5–2.6).
   points_win: 2,
   points_tie: 1,
   points_no_result: 1,
-  max_teams: 8,
   min_squad_size: 11,
   max_squad_size: 15,
   registration_deadline: null,

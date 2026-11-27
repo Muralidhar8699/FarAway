@@ -34,7 +34,7 @@ Cricket only for now. Other sports come later.
 - [x] **2.1** Basic details: name, season/year, logo, start and end dates, venues
 - [x] **2.2** Match rules: overs per innings, players per side, powerplay overs, max overs per bowler, wide/no-ball runs, free hit, super over on a tie, last man stands
 - [x] **2.3** Mode preset: **Gully** (short overs, flexible rules) or **Professional** (full T20 rules)
-- [ ] **2.4** Format: league (single or double round-robin) + playoffs (IPL style: Qualifier 1, Eliminator, Qualifier 2, Final) or simple semi-finals and final
+- [x] **2.4** Format: league (single or double round-robin) + playoffs (IPL style: Qualifier 1, Eliminator, Qualifier 2, Final), league + semi-finals and final, or knockout; number of teams; live match-count plan
 - [ ] **2.5** Points rules: win / tie / no result points, tie-breakers (NRR, head-to-head)
 - [ ] **2.6** Team registration settings: max teams, min/max squad size, invite link or code, deadline
 - [ ] **2.7** Tournament dashboard page (overview, teams, fixtures, table, stats tabs)

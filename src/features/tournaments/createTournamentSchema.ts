@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { LEAGUE_MIN_TEAMS, MAX_TEAMS, MIN_TEAMS, minTeamsFor } from "@/lib/format";
+
 export const MAX_VENUES = 10;
 
 const wholeNumber = (label: string, min: number, max: number) =>
@@ -48,6 +50,11 @@ export const createTournamentSchema = z
     free_hit_on_no_ball: z.boolean(),
     last_man_stands: z.boolean(),
     super_over_on_tie: z.boolean(),
+
+    // Step 3: format
+    format: z.enum(["league_playoffs", "league_semis", "knockout"]),
+    league_rounds: z.union([z.literal(1), z.literal(2)]),
+    max_teams: wholeNumber("number of teams", MIN_TEAMS, MAX_TEAMS),
   })
   // Each cross-field check runs as soon as the fields it depends on are valid,
   // even if other fields (e.g. on another step) still have errors.
@@ -55,6 +62,11 @@ export const createTournamentSchema = z
     path: ["end_date"],
     message: "End date can't be before the start date",
     when: onlyNeeds("start_date", "end_date"),
+  })
+  .refine((v) => v.max_teams >= minTeamsFor(v.format), {
+    path: ["max_teams"],
+    message: `League formats need at least ${LEAGUE_MIN_TEAMS} teams (the top 4 reach the playoffs)`,
+    when: onlyNeeds("max_teams", "format"),
   })
   .refine((v) => v.powerplay_overs <= v.overs_per_innings, {
     path: ["powerplay_overs"],
@@ -95,4 +107,5 @@ export const STEP_FIELDS = {
     "last_man_stands",
     "super_over_on_tie",
   ],
+  format: ["format", "league_rounds", "max_teams"],
 } as const satisfies Record<string, readonly (keyof CreateTournamentValues)[]>;

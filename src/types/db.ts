@@ -32,6 +32,7 @@ export interface Tournament {
   logo_url: string | null;
   mode: TournamentMode;
   format: TournamentFormat;
+  league_rounds: 1 | 2; // play each team once or twice in the league stage
   start_date: string; // YYYY-MM-DD
   end_date: string;
   venues: string[];

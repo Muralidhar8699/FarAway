@@ -131,6 +131,7 @@ function baseTournament(t: Partial<Tournament> & Pick<Tournament, "id" | "name">
     logo_url: null,
     mode: "professional",
     format: "league_playoffs",
+    league_rounds: 1,
     start_date: "2026-12-05",
     end_date: "2026-12-28",
     venues: [],

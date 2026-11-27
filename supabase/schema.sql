@@ -20,6 +20,7 @@ create table tournaments (
   mode text not null default 'gully' check (mode in ('gully', 'professional')),
   format text not null default 'league_playoffs'
     check (format in ('league_playoffs', 'league_semis', 'knockout')),
+  league_rounds int not null default 1 check (league_rounds in (1, 2)),
   start_date date not null,
   end_date date not null,
   venues text[] not null default '{}',
@@ -45,6 +46,8 @@ create table tournaments (
   created_by uuid not null references auth.users(id) default auth.uid(),
   created_at timestamptz not null default now(),
   check (end_date >= start_date),
+  check (max_teams between 2 and 32),
+  check (format = 'knockout' or max_teams >= 4),
   check (powerplay_overs between 0 and overs_per_innings),
   check (max_overs_per_bowler between 1 and overs_per_innings),
   check (max_overs_per_bowler * players_per_side >= overs_per_innings)

@@ -20,6 +20,7 @@ import {
   type CreateTournamentValues,
 } from "@/features/tournaments/createTournamentSchema";
 import { DetailsStep } from "@/features/tournaments/DetailsStep";
+import { FormatStep } from "@/features/tournaments/FormatStep";
 import { RulesStep } from "@/features/tournaments/RulesStep";
 import { StepIndicator } from "@/features/tournaments/StepIndicator";
 import { DEFAULT_MODE, DEFAULT_TOURNAMENT_RULES, RULE_PRESETS } from "@/lib/tournamentDefaults";
@@ -39,6 +40,13 @@ const STEPS = [
     description: "Pick gully or professional, then adjust any rule.",
     Component: RulesStep,
   },
+  {
+    key: "format",
+    title: "Format",
+    cardTitle: "Tournament format",
+    description: "League, playoffs or knockout, and how many teams can join.",
+    Component: FormatStep,
+  },
 ] as const;
 
 export function CreateTournamentPage() {
@@ -57,6 +65,9 @@ export function CreateTournamentPage() {
       venues: [],
       mode: DEFAULT_MODE,
       ...RULE_PRESETS[DEFAULT_MODE],
+      format: DEFAULT_TOURNAMENT_RULES.format,
+      league_rounds: DEFAULT_TOURNAMENT_RULES.league_rounds,
+      max_teams: DEFAULT_TOURNAMENT_RULES.max_teams,
     },
   });
   const { isSubmitting } = form.formState;
@@ -103,7 +114,7 @@ export function CreateTournamentPage() {
       <div>
         <h1 className="text-2xl font-bold">Create Tournament</h1>
         <p className="text-sm text-muted-foreground">
-          Step {step + 1} of {STEPS.length}. Format and team registration come next.
+          Step {step + 1} of {STEPS.length}: {current.title}
         </p>
       </div>
 
