@@ -128,7 +128,7 @@ export function CreateTournamentPage() {
         },
         { openRegistration: open_registration }
       );
-      navigate("/tournaments", { state: { createdName: tournament.name } });
+      navigate(`/tournaments/${tournament.id}`, { state: { createdName: tournament.name } });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { CalendarDays, CircleCheck, X, MapPin, RotateCcw, Trophy, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CalendarDays, MapPin, RotateCcw, Trophy, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,16 +20,6 @@ type Row = Tournament & { teamCount: number };
 
 export function TournamentsPage() {
   const [rows, setRows] = useState<Row[] | null>(null);
-  const location = useLocation();
-  const navigate = useNavigate();
-  // Show the "created" message once, then clear it so a refresh doesn't bring it back.
-  const [createdName, setCreatedName] = useState(
-    () => (location.state as { createdName?: string } | null)?.createdName
-  );
-  useEffect(() => {
-    if (location.state) navigate(location.pathname, { replace: true, state: null });
-  }, [location.state, location.pathname, navigate]);
-
   const load = useCallback(async () => {
     setRows(null);
     const tournaments = await api.listTournaments();
@@ -57,26 +47,6 @@ export function TournamentsPage() {
           <Link to="/tournaments/new">Create Tournament</Link>
         </Button>
       </div>
-
-      {createdName && (
-        <div
-          role="status"
-          className="flex items-center gap-3 rounded-lg border border-green-600/30 bg-green-600/10 px-4 py-3 text-sm"
-        >
-          <CircleCheck className="size-5 shrink-0 text-green-600" />
-          <span className="flex-1">
-            <strong>{createdName}</strong> was created as a draft. Rules and team registration come next.
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Dismiss"
-            onClick={() => setCreatedName(undefined)}
-          >
-            <X />
-          </Button>
-        </div>
-      )}
 
       {USING_MOCK_DATA && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed px-4 py-3 text-sm">
@@ -109,40 +79,46 @@ export function TournamentsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {rows.map((t) => (
-            <Card key={t.id}>
-              <CardHeader>
-                <div className="mb-2 flex size-12 items-center justify-center overflow-hidden rounded-lg border bg-muted">
-                  {t.logo_url ? (
-                    <img src={t.logo_url} alt="" className="size-full object-contain" />
-                  ) : (
-                    <Trophy className="size-6 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant={t.status === "ongoing" ? "default" : "secondary"}>
-                    {STATUS_LABELS[t.status]}
-                  </Badge>
-                  <Badge variant="outline">{MODE_LABELS[t.mode]}</Badge>
-                </div>
-                <CardTitle className="text-lg">
-                  {t.name} {t.season}
-                </CardTitle>
-                <CardDescription>
-                  {FORMAT_LABELS[t.format]} · {t.overs_per_innings} overs · {t.players_per_side} a side
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <span className="flex items-center gap-2">
-                  <CalendarDays className="size-4" /> {formatDateRange(t.start_date, t.end_date)}
-                </span>
-                <span className="flex items-center gap-2">
-                  <MapPin className="size-4" /> {t.venues.join(", ") || "Venue not set"}
-                </span>
-                <span className="flex items-center gap-2">
-                  <Users className="size-4" /> {t.teamCount} / {t.max_teams} teams
-                </span>
-              </CardContent>
-            </Card>
+            <Link
+              key={t.id}
+              to={`/tournaments/${t.id}`}
+              className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+              <Card className="h-full transition-colors hover:bg-accent/40">
+                <CardHeader>
+                  <div className="mb-2 flex size-12 items-center justify-center overflow-hidden rounded-lg border bg-muted">
+                    {t.logo_url ? (
+                      <img src={t.logo_url} alt="" className="size-full object-contain" />
+                    ) : (
+                      <Trophy className="size-6 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant={t.status === "ongoing" ? "default" : "secondary"}>
+                      {STATUS_LABELS[t.status]}
+                    </Badge>
+                    <Badge variant="outline">{MODE_LABELS[t.mode]}</Badge>
+                  </div>
+                  <CardTitle className="text-lg">
+                    {t.name} {t.season}
+                  </CardTitle>
+                  <CardDescription>
+                    {FORMAT_LABELS[t.format]} · {t.overs_per_innings} overs · {t.players_per_side} a side
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-2 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-2">
+                    <CalendarDays className="size-4" /> {formatDateRange(t.start_date, t.end_date)}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <MapPin className="size-4" /> {t.venues.join(", ") || "Venue not set"}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <Users className="size-4" /> {t.teamCount} / {t.max_teams} teams
+                  </span>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

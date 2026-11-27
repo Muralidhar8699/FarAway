@@ -1,4 +1,53 @@
-import type { TieBreaker, TournamentFormat, TournamentMode, TournamentStatus } from "@/types/db";
+import type {
+  MatchStage,
+  MatchStatus,
+  PlayerRole,
+  TeamStatus,
+  TieBreaker,
+  TournamentFormat,
+  TournamentMode,
+  TournamentStatus,
+} from "@/types/db";
+
+export const STAGE_LABELS: Record<MatchStage, string> = {
+  league: "League",
+  qualifier_1: "Qualifier 1",
+  eliminator: "Eliminator",
+  qualifier_2: "Qualifier 2",
+  quarter_final: "Quarter-final",
+  semi_final: "Semi-final",
+  final: "Final",
+};
+
+export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
+  scheduled: "Upcoming",
+  live: "Live",
+  completed: "Completed",
+  abandoned: "Abandoned",
+};
+
+export const TEAM_STATUS_LABELS: Record<TeamStatus, string> = {
+  pending: "Waiting for approval",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+export const PLAYER_ROLE_LABELS: Record<PlayerRole, string> = {
+  batter: "Batter",
+  bowler: "Bowler",
+  all_rounder: "All-rounder",
+  wicket_keeper: "Wicketkeeper",
+};
+
+export function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 export const TIE_BREAKER_LABELS: Record<TieBreaker, { title: string; description: string }> = {
   wins: { title: "Most wins", description: "The team with more wins goes higher." },

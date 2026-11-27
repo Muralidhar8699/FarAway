@@ -11,8 +11,12 @@ export type NewTournament = Omit<
 >;
 
 export interface DataApi {
+  /** The logged-in user's id, or null. Dummy data: always the demo organizer. */
+  getCurrentUserId(): Promise<string | null>;
+
   listTournaments(): Promise<Tournament[]>;
   getTournament(id: string): Promise<Tournament | null>;
+  getTournamentByInviteCode(code: string): Promise<Tournament | null>;
   /** Saves as a draft, or opens team registration straight away. */
   createTournament(input: NewTournament, options?: { openRegistration?: boolean }): Promise<Tournament>;
   updateTournament(id: string, changes: Partial<Tournament>): Promise<Tournament>;

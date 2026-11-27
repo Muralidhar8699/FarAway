@@ -37,7 +37,7 @@ Cricket only for now. Other sports come later.
 - [x] **2.4** Format: league (single or double round-robin) + playoffs (IPL style: Qualifier 1, Eliminator, Qualifier 2, Final), league + semi-finals and final, or knockout; number of teams; live match-count plan
 - [x] **2.5** Points rules: win / tie / no result points, tie-breakers (NRR, head-to-head)
 - [x] **2.6** Team registration settings: min/max squad size, open registration now or keep as draft, deadline (max teams is set in 2.4; the invite code is created on save)
-- [ ] **2.7** Tournament dashboard page (overview, teams, fixtures, table, stats tabs)
+- [x] **2.7** Tournament dashboard page (overview, teams, fixtures, table, stats tabs), invite code and link, open registration; /join/:code landing page (sign-up form comes in 3.1)
 
 ## Phase 3: Team Registration (franchises)
 - [ ] **3.1** Team owner joins with the invite link and registers a team: name, short name (e.g. "CSK"), logo, colours, home ground

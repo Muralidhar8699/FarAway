@@ -41,6 +41,10 @@ function makeInviteCode() {
 }
 
 export const mockApi: DataApi = {
+  async getCurrentUserId() {
+    return DEMO_USER_ID;
+  },
+
   async listTournaments() {
     const list = [...db.tournaments].sort((a, b) => a.start_date.localeCompare(b.start_date));
     return delay(list);
@@ -48,6 +52,11 @@ export const mockApi: DataApi = {
 
   async getTournament(id) {
     return delay(db.tournaments.find((t) => t.id === id) ?? null);
+  },
+
+  async getTournamentByInviteCode(code) {
+    const wanted = code.trim().toUpperCase();
+    return delay(db.tournaments.find((t) => t.invite_code === wanted) ?? null);
   },
 
   async createTournament(input, options) {
