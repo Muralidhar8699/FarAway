@@ -10,11 +10,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/data/api";
 import { PlayerFormDialog } from "@/features/squad/PlayerFormDialog";
+import { SquadList } from "@/features/squad/SquadList";
 import { ComingSoon } from "@/features/tournaments/dashboard/ComingSoon";
 import { useAsync } from "@/hooks/useAsync";
-import { PLAYER_ROLE_LABELS, TEAM_STATUS_LABELS } from "@/lib/labels";
+import { TEAM_STATUS_LABELS } from "@/lib/labels";
 import { getSquadAccess } from "@/lib/squad";
-import type { Match, PlayerRole, SquadPlayer } from "@/types/db";
+import type { Match, SquadPlayer } from "@/types/db";
 
 async function loadTeam(tournamentId: string, teamId: string) {
   const [tournament, team, userId] = await Promise.all([
@@ -46,18 +47,11 @@ function record(matches: Match[], teamId: string) {
   return { played: done.length, won, lost, noResult: done.length - won - lost };
 }
 
-const ROLE_ORDER: PlayerRole[] = ["batter", "wicket_keeper", "all_rounder", "bowler"];
-const ROLE_GROUP_TITLES: Record<PlayerRole, string> = {
-  batter: "Batters",
-  wicket_keeper: "Wicketkeepers",
-  all_rounder: "All-rounders",
-  bowler: "Bowlers",
-};
-
 export function TeamPage() {
   const { id = "", teamId = "" } = useParams();
   const { status, data, reload } = useAsync(() => loadTeam(id, teamId), [id, teamId]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<SquadPlayer | null>(null);
 
   if (status === "loading") {
     return (
@@ -138,7 +132,7 @@ export function TeamPage() {
         teamId={team.id}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        editing={null}
+        editing={editing}
         onSaved={reload}
       />
 
@@ -157,7 +151,10 @@ export function TeamPage() {
             {access.canEdit && (
               <Button
                 size="sm"
-                onClick={() => setDialogOpen(true)}
+                onClick={() => {
+                  setEditing(null);
+                  setDialogOpen(true);
+                }}
                 disabled={squadFull}
                 title={squadFull ? `The squad is full (${t.max_squad_size} players)` : undefined}
               >
@@ -177,7 +174,16 @@ export function TeamPage() {
                 {access.canEdit ? "No players yet. Tap Add player to build your squad." : "No players added yet."}
               </p>
             ) : (
-              <SquadList squad={squad} />
+              <SquadList
+                teamId={team.id}
+                squad={squad}
+                canEdit={access.canEdit}
+                onEdit={(player) => {
+                  setEditing(player);
+                  setDialogOpen(true);
+                }}
+                onChanged={reload}
+              />
             )}
           </CardContent>
         </Card>
@@ -205,62 +211,5 @@ export function TeamPage() {
         </section>
       </div>
     </div>
-  );
-}
-
-function SquadList({ squad }: { squad: SquadPlayer[] }) {
-  return (
-    <div className="flex flex-col gap-4">
-      {ROLE_ORDER.map((role) => {
-        const players = squad
-          .filter((s) => s.player.role === role)
-          .sort(
-            (a, b) =>
-              Number(b.is_captain) - Number(a.is_captain) ||
-              Number(b.is_vice_captain) - Number(a.is_vice_captain) ||
-              a.player.full_name.localeCompare(b.player.full_name)
-          );
-        if (players.length === 0) return null;
-        return (
-          <div key={role}>
-            <h3 className="mb-1 text-xs font-semibold text-muted-foreground uppercase">
-              {ROLE_GROUP_TITLES[role]} ({players.length})
-            </h3>
-            <ul className="divide-y">
-              {players.map((s) => (
-                <li key={s.player_id} className="flex items-center gap-3 py-2">
-                  <span className="w-7 shrink-0 text-center text-sm font-semibold text-muted-foreground">
-                    {s.jersey_number ?? "–"}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="flex flex-wrap items-center gap-1.5 font-medium">
-                      <span className="truncate">{s.player.full_name}</span>
-                      {s.is_captain && <RoleTag title="Captain">C</RoleTag>}
-                      {s.is_vice_captain && <RoleTag title="Vice-captain">VC</RoleTag>}
-                      {s.is_wicket_keeper && <RoleTag title="Wicketkeeper">WK</RoleTag>}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {PLAYER_ROLE_LABELS[s.player.role]} · {s.player.batting_style === "left" ? "Left" : "Right"}-hand bat
-                      {s.player.bowling_style ? ` · ${s.player.bowling_style}` : ""}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function RoleTag({ title, children }: { title: string; children: string }) {
-  return (
-    <abbr
-      title={title}
-      className="rounded bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground no-underline"
-    >
-      {children}
-    </abbr>
   );
 }
